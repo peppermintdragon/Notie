@@ -1,0 +1,25 @@
+{
+  "name": "twogether",
+  "version": "1.0.0",
+  "private": true,
+  "description": "TwoGether — A couples relationship app",
+  "workspaces": [
+    "client",
+    "server",
+    "shared"
+  ],
+  "scripts": {
+    "dev": "concurrently \"npm run dev:server\" \"npm run dev:client\"",
+    "dev:client": "npm run dev --workspace=client",
+    "dev:server": "npm run dev --workspace=server",
+    "build": "npm run build --workspace=shared && npm run build --workspace=server && npm run build --workspace=client",
+    "lint": "concurrently \"npm run lint --workspace=client\" \"npm run lint --workspace=server\"",
+    "db:migrate": "npm run db:migrate --workspace=server",
+    "db:seed": "npm run db:seed --workspace=server",
+    "db:studio": "npm run db:studio --workspace=server"
+  },
+  "devDependencies": {
+    "concurrently": "^9.1.0",
+    "typescript": "^5.7.0"
+  }
+}

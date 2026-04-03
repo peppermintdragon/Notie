@@ -18,7 +18,7 @@ export async function getNotifications(req: Request, res: Response) {
   ]);
 
   return success(res, {
-    notifications: notifications.map((n) => ({
+    notifications: notifications.map((n: typeof notifications[number]) => ({
       id: n.id,
       type: n.type,
       title: n.title,

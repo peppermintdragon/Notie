@@ -9,7 +9,7 @@ export async function sendPing(req: Request, res: Response) {
     select: { userId: true },
   });
 
-  const partnerId = coupleUsers.find((cu) => cu.userId !== req.userId)?.userId;
+  const partnerId = coupleUsers.find((cu: { userId: string }) => cu.userId !== req.userId)?.userId;
   if (!partnerId) {
     return error(res, 'No partner found', 400);
   }
@@ -69,7 +69,7 @@ export async function getRecentPings(req: Request, res: Response) {
     take: 20,
   });
 
-  return success(res, pings.map((p) => ({
+  return success(res, pings.map((p: typeof pings[number]) => ({
     id: p.id,
     sender: p.sender,
     createdAt: p.createdAt.toISOString(),

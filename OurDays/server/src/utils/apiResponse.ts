@@ -1,0 +1,34 @@
+import type { Response } from 'express';
+
+export function success<T>(res: Response, data?: T, message?: string, statusCode = 200) {
+  return res.status(statusCode).json({
+    success: true,
+    data,
+    message,
+  });
+}
+
+export function error(res: Response, message: string, statusCode = 400, errors?: Record<string, string[]>) {
+  return res.status(statusCode).json({
+    success: false,
+    message,
+    errors,
+  });
+}
+
+export function paginated<T>(
+  res: Response,
+  data: T[],
+  total: number,
+  page: number,
+  pageSize: number
+) {
+  return res.status(200).json({
+    success: true,
+    data,
+    total,
+    page,
+    pageSize,
+    totalPages: Math.ceil(total / pageSize),
+  });
+}

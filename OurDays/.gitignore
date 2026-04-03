@@ -1,0 +1,39 @@
+# Dependencies
+node_modules/
+
+# Build outputs
+dist/
+build/
+
+# Environment files
+.env
+.env.local
+.env.production
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Uploads (keep structure, ignore files)
+server/uploads/avatars/*
+server/uploads/memories/*
+server/uploads/notes/*
+!server/uploads/avatars/.gitkeep
+!server/uploads/memories/.gitkeep
+!server/uploads/notes/.gitkeep
+
+# Prisma
+server/prisma/migrations/
+
+# Logs
+*.log
+npm-debug.log*
+
+# Coverage
+coverage/

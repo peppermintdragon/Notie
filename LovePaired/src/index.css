@@ -1,0 +1,76 @@
+@import "tailwindcss";
+@import "./styles/tokens.css";
+
+/* ═══════════════════════════════════════════════
+   Tailwind v4 — Theme extension
+   ═══════════════════════════════════════════════ */
+
+@theme {
+  /* Colors */
+  --color-lp-bg: #FDFAFC;
+  --color-lp-surface: #FFFFFF;
+  --color-lp-accent: #E8637E;
+  --color-lp-accent-soft: #FBF0F2;
+  --color-lp-text: #1A1A1A;
+  --color-lp-muted: #9A8A90;
+
+  /* Spacing */
+  --spacing-lp-1: 8px;
+  --spacing-lp-2: 16px;
+  --spacing-lp-3: 24px;
+  --spacing-lp-4: 32px;
+  --spacing-lp-5: 48px;
+
+  /* Border radius */
+  --radius-card: 16px;
+  --radius-btn: 24px;
+
+  /* Font size */
+  --font-size-hero: 32px;
+  --font-size-title: 20px;
+  --font-size-body: 15px;
+  --font-size-label: 13px;
+  --font-size-caption: 11px;
+}
+
+/* ═══════════════════════════════════════════════
+   Dark mode variant
+   ═══════════════════════════════════════════════ */
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+/* ═══════════════════════════════════════════════
+   Base styles
+   ═══════════════════════════════════════════════ */
+
+html,
+body,
+#root {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  font-family: var(--lp-font);
+  font-size: var(--lp-fs-body);
+  font-weight: var(--lp-fw-regular);
+  line-height: 1.6;
+  color: var(--lp-text);
+  background: var(--lp-bg);
+  overflow-x: hidden;
+
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+button,
+input,
+textarea {
+  font: inherit;
+}
+
+::selection {
+  background: rgba(232, 99, 126, 0.2);
+}

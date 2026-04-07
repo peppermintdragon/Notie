@@ -1,0 +1,55 @@
+/* ═══════════════════════════════════════════════
+   LovePaired — Design Tokens
+   ═══════════════════════════════════════════════ */
+
+:root {
+  /* ── Colors ── */
+  --lp-bg: #FDFAFC;
+  --lp-surface: #FFFFFF;
+  --lp-border: rgba(0, 0, 0, 0.06);
+  --lp-accent: #E8637E;
+  --lp-accent-soft: #FBF0F2;
+  --lp-text: #1A1A1A;
+  --lp-muted: #9A8A90;
+  --lp-divider: rgba(0, 0, 0, 0.05);
+
+  /* ── Typography ── */
+  --lp-font: 'Inter', system-ui, -apple-system, sans-serif;
+
+  --lp-fs-hero: 32px;
+  --lp-fs-title: 20px;
+  --lp-fs-body: 15px;
+  --lp-fs-label: 13px;
+  --lp-fs-caption: 11px;
+
+  --lp-fw-light: 300;
+  --lp-fw-regular: 400;
+  --lp-fw-medium: 500;
+
+  /* ── Spacing ── */
+  --lp-space-1: 8px;
+  --lp-space-2: 16px;
+  --lp-space-3: 24px;
+  --lp-space-4: 32px;
+  --lp-space-5: 48px;
+
+  /* ── Radii ── */
+  --lp-radius-card: 16px;
+  --lp-radius-btn: 24px;
+
+  /* ── Misc ── */
+  --lp-screen-px: 24px;
+  --lp-btn-h: 48px;
+}
+
+/* ── Dark mode ── */
+.dark {
+  --lp-bg: #0F0A0D;
+  --lp-surface: #1A1218;
+  --lp-border: rgba(255, 255, 255, 0.07);
+  --lp-accent: #E8637E;
+  --lp-accent-soft: #2A1820;
+  --lp-text: #F0EAF0;
+  --lp-muted: #7A6870;
+  --lp-divider: rgba(255, 255, 255, 0.05);
+}

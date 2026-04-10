@@ -9,15 +9,19 @@ async function ensureCaveatFont() {
   if (!('fonts' in document)) return;
   if (!caveatReady) {
     caveatReady = (async () => {
-      const alreadyLoaded = Array.from(document.fonts).some((font) => font.family.includes('Caveat'));
-      if (!alreadyLoaded && 'FontFace' in window) {
-        const font = new FontFace('Caveat', CAVEAT_SOURCE, {
-          style: 'normal',
-          weight: '700',
-        });
+      try {
+        const alreadyLoaded = Array.from(document.fonts).some((font) => font.family.includes('Caveat'));
+        if (!alreadyLoaded && 'FontFace' in window) {
+          const font = new FontFace('Caveat', CAVEAT_SOURCE, {
+            style: 'normal',
+            weight: '700',
+          });
 
-        await font.load();
-        document.fonts.add(font);
+          await font.load();
+          document.fonts.add(font);
+        }
+      } catch (error) {
+        console.warn('PNG export font preload failed, falling back to existing fonts.', error);
       }
 
       await document.fonts.ready;
@@ -76,6 +80,17 @@ function canvasToBlob(canvas) {
   });
 }
 
+function triggerDownload(url, filename) {
+  const link = document.createElement('a');
+  link.download = filename;
+  link.href = url;
+  link.rel = 'noopener';
+  link.style.display = 'none';
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+}
+
 export async function exportNotePng(node, noteId) {
   if (!node) {
     throw new Error('Could not find the note preview to export.');
@@ -97,18 +112,23 @@ export async function exportNotePng(node, noteId) {
       removeContainer: true,
     });
 
-    const blob = await canvasToBlob(canvas);
-    const objectUrl = window.URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.download = `notie-${noteId || 'note'}.png`;
-    link.href = objectUrl;
-    link.rel = 'noopener';
-    link.style.display = 'none';
-    document.body.appendChild(link);
-    link.click();
-    link.remove();
-    window.setTimeout(() => window.URL.revokeObjectURL(objectUrl), 1500);
+    const filename = `notie-${noteId || 'note'}.png`;
+
+    try {
+      const blob = await canvasToBlob(canvas);
+      const objectUrl = window.URL.createObjectURL(blob);
+      triggerDownload(objectUrl, filename);
+      window.setTimeout(() => window.URL.revokeObjectURL(objectUrl), 1500);
+    } catch (blobError) {
+      console.warn('Blob export failed, falling back to data URL download.', blobError);
+      const dataUrl = canvas.toDataURL('image/png');
+      triggerDownload(dataUrl, filename);
+    }
+
     return true;
+  } catch (error) {
+    console.error('PNG export failed.', error);
+    throw error;
   } finally {
     exportStage.cleanup();
   }

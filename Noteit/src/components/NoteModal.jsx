@@ -16,8 +16,9 @@ export default function NoteModal({ note, onClose, onDelete }) {
     try {
       await exportNotePng(exportRef.current, note.id);
       setExportError('');
-    } catch {
-      setExportError('Could not download PNG right now. Please try again.');
+    } catch (error) {
+      console.error('Modal PNG export failed.', error);
+      setExportError(error?.message || 'Could not download PNG right now. Please try again.');
     } finally {
       setIsExporting(false);
     }

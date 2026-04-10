@@ -1,13 +1,21 @@
-import html2canvas from 'html2canvas';
+import { themeMap } from './colorThemes';
+import { noteDesignMap } from './noteDesigns';
+import {
+  getPushpinColor,
+  normalizeStickerEntries,
+  pushpinMap,
+  stickerMap,
+} from './stickers';
 
-const EXPORT_SIZE = 400;
+const EXPORT_SIZE = 800;
 const CAVEAT_SOURCE = 'url(https://fonts.gstatic.com/s/caveat/v17/WnznHAc5bAfYB2QRah7pcpNvOx-pjcB9eIWpZQ.woff2)';
-const EXPORT_ATTR = 'data-export-note-root';
 
 let caveatReady;
+const imageCache = new Map();
 
 async function ensureCaveatFont() {
   if (!('fonts' in document)) return;
+
   if (!caveatReady) {
     caveatReady = (async () => {
       try {
@@ -32,125 +40,267 @@ async function ensureCaveatFont() {
   await caveatReady;
 }
 
-function buildExportStage(node) {
-  const wrapper = document.createElement('div');
-  wrapper.style.position = 'fixed';
-  wrapper.style.left = '-9999px';
-  wrapper.style.top = '0';
-  wrapper.style.width = `${EXPORT_SIZE}px`;
-  wrapper.style.height = `${EXPORT_SIZE}px`;
-  wrapper.style.padding = '0';
-  wrapper.style.margin = '0';
-  wrapper.style.pointerEvents = 'none';
-  wrapper.style.opacity = '1';
-  wrapper.style.zIndex = '-1';
-  wrapper.style.background = 'transparent';
+function containsCjk(text) {
+  return /[\u3400-\u9FFF\uF900-\uFAFF]/.test(text);
+}
 
-  const clone = node.cloneNode(true);
-  clone.setAttribute(EXPORT_ATTR, 'true');
-  clone.style.width = `${EXPORT_SIZE}px`;
-  clone.style.height = `${EXPORT_SIZE}px`;
-  clone.style.minWidth = `${EXPORT_SIZE}px`;
-  clone.style.minHeight = `${EXPORT_SIZE}px`;
-  clone.style.maxWidth = `${EXPORT_SIZE}px`;
-  clone.style.maxHeight = `${EXPORT_SIZE}px`;
-  clone.style.margin = '0';
-  clone.style.transform = 'none';
+function clamp(value, min, max) {
+  return Math.max(min, Math.min(max, value));
+}
 
-  wrapper.appendChild(clone);
-  document.body.appendChild(wrapper);
+function roundRectPath(ctx, x, y, width, height, radius) {
+  const safeRadius = Math.min(radius, width / 2, height / 2);
+  ctx.beginPath();
+  ctx.moveTo(x + safeRadius, y);
+  ctx.arcTo(x + width, y, x + width, y + height, safeRadius);
+  ctx.arcTo(x + width, y + height, x, y + height, safeRadius);
+  ctx.arcTo(x, y + height, x, y, safeRadius);
+  ctx.arcTo(x, y, x + width, y, safeRadius);
+  ctx.closePath();
+}
 
+function wrapMessageLines(ctx, text, maxWidth, hasCjk) {
+  const normalized = text.trim().replace(/\s+/g, ' ');
+  if (!normalized) return [''];
+
+  if (hasCjk) {
+    const lines = [];
+    let current = '';
+
+    normalized.split('').forEach((char) => {
+      const candidate = `${current}${char}`;
+      if (current && ctx.measureText(candidate).width > maxWidth) {
+        lines.push(current);
+        current = char;
+      } else {
+        current = candidate;
+      }
+    });
+
+    if (current) lines.push(current);
+    return lines;
+  }
+
+  const words = normalized.split(' ');
+  const lines = [];
+  let current = words.shift() || '';
+
+  words.forEach((word) => {
+    const candidate = `${current} ${word}`;
+    if (ctx.measureText(candidate).width > maxWidth) {
+      lines.push(current);
+      current = word;
+    } else {
+      current = candidate;
+    }
+  });
+
+  if (current) lines.push(current);
+  return lines;
+}
+
+function getMessageLayout(ctx, message) {
+  const hasCjk = containsCjk(message);
+  const family = hasCjk
+    ? '"Noto Sans TC", "Microsoft JhengHei", "PingFang TC", sans-serif'
+    : '"Caveat", "Segoe Print", cursive';
+
+  const maxWidth = EXPORT_SIZE * 0.48;
+  const maxHeight = EXPORT_SIZE * 0.28;
+  const minFontSize = hasCjk ? 32 : 42;
+  let fontSize = hasCjk ? 72 : 82;
+  let lines = [];
+  let lineHeight = 1.1;
+
+  while (fontSize >= minFontSize) {
+    lineHeight = hasCjk ? 1.18 : 1.08;
+    ctx.font = `700 ${fontSize}px ${family}`;
+    lines = wrapMessageLines(ctx, message, maxWidth, hasCjk);
+    const totalHeight = lines.length * fontSize * lineHeight;
+
+    if (lines.length <= 4 && totalHeight <= maxHeight) {
+      return {
+        hasCjk,
+        family,
+        fontSize,
+        lineHeight,
+        lines,
+        maxWidth,
+      };
+    }
+
+    fontSize -= hasCjk ? 3 : 4;
+  }
+
+  ctx.font = `700 ${minFontSize}px ${family}`;
   return {
-    wrapper,
-    clone,
-    cleanup() {
-      wrapper.remove();
-    },
+    hasCjk,
+    family,
+    fontSize: minFontSize,
+    lineHeight,
+    lines: wrapMessageLines(ctx, message, maxWidth, hasCjk).slice(0, 5),
+    maxWidth,
   };
 }
 
-function copyComputedStyles(sourceNode, targetNode) {
-  if (!(sourceNode instanceof Element) || !(targetNode instanceof Element)) return;
+function drawBlankPaper(ctx, theme) {
+  const outerX = 120;
+  const outerY = 110;
+  const outerSize = 560;
+  const innerX = 150;
+  const innerY = 145;
+  const innerWidth = 500;
+  const innerHeight = 500;
 
-  const computedStyle = window.getComputedStyle(sourceNode);
-  Array.from(computedStyle).forEach((propertyName) => {
-    const value = computedStyle.getPropertyValue(propertyName);
-    const priority = computedStyle.getPropertyPriority(propertyName);
-    targetNode.style.setProperty(propertyName, value, priority);
+  const paperGradient = ctx.createLinearGradient(0, outerY, 0, outerY + outerSize);
+  paperGradient.addColorStop(0, theme.surface);
+  paperGradient.addColorStop(1, theme.inner);
+
+  ctx.save();
+  ctx.shadowColor = theme.shadow;
+  ctx.shadowBlur = 36;
+  ctx.shadowOffsetY = 20;
+  roundRectPath(ctx, outerX, outerY, outerSize, outerSize, 26);
+  ctx.fillStyle = paperGradient;
+  ctx.fill();
+  ctx.restore();
+
+  roundRectPath(ctx, innerX, innerY, innerWidth, innerHeight, 28);
+  ctx.strokeStyle = theme.border;
+  ctx.lineWidth = 3;
+  ctx.stroke();
+
+  ctx.save();
+  roundRectPath(ctx, innerX, innerY, innerWidth, innerHeight, 28);
+  ctx.clip();
+  ctx.fillStyle = 'rgba(255,255,255,0.18)';
+  ctx.fillRect(innerX, innerY, innerWidth, innerHeight);
+
+  ctx.strokeStyle = 'rgba(114, 102, 90, 0.22)';
+  ctx.lineWidth = 2;
+  for (let y = innerY + 104; y < innerY + innerHeight - 24; y += 60) {
+    ctx.beginPath();
+    ctx.moveTo(innerX + 54, y);
+    ctx.lineTo(innerX + innerWidth - 54, y);
+    ctx.stroke();
+  }
+  ctx.restore();
+}
+
+async function loadImage(src) {
+  if (!src) return null;
+  if (imageCache.has(src)) return imageCache.get(src);
+
+  const imagePromise = new Promise((resolve, reject) => {
+    const image = new Image();
+    image.crossOrigin = 'anonymous';
+    image.onload = () => resolve(image);
+    image.onerror = () => reject(new Error(`Could not load image for PNG export: ${src}`));
+    image.src = src;
   });
 
-  const sourceChildren = Array.from(sourceNode.children);
-  const targetChildren = Array.from(targetNode.children);
+  imageCache.set(src, imagePromise);
+  return imagePromise;
+}
 
-  sourceChildren.forEach((sourceChild, index) => {
-    copyComputedStyles(sourceChild, targetChildren[index]);
+function drawPushpin(ctx, pin) {
+  if (!pin) return;
+
+  const cx = EXPORT_SIZE / 2;
+  const cy = 96;
+
+  ctx.save();
+  ctx.shadowColor = pin.shadow;
+  ctx.shadowBlur = 20;
+  ctx.shadowOffsetY = 12;
+  ctx.beginPath();
+  ctx.arc(cx, cy, 18, 0, Math.PI * 2);
+  ctx.fillStyle = pin.color;
+  ctx.fill();
+  ctx.restore();
+
+  ctx.beginPath();
+  ctx.arc(cx - 5, cy - 5, 6, 0, Math.PI * 2);
+  ctx.fillStyle = 'rgba(255,255,255,0.55)';
+  ctx.fill();
+
+  ctx.beginPath();
+  ctx.arc(cx, cy, 18, 0, Math.PI * 2);
+  ctx.lineWidth = 3;
+  ctx.strokeStyle = pin.edge;
+  ctx.stroke();
+
+  const stemGradient = ctx.createLinearGradient(cx, cy + 16, cx, cy + 56);
+  stemGradient.addColorStop(0, '#fef7ed');
+  stemGradient.addColorStop(1, '#6f5841');
+  ctx.beginPath();
+  ctx.roundRect(cx - 2, cy + 16, 4, 38, 999);
+  ctx.fillStyle = stemGradient;
+  ctx.fill();
+}
+
+function drawMessage(ctx, message) {
+  const layout = getMessageLayout(ctx, message);
+  const baseX = EXPORT_SIZE / 2;
+  const startY = 310;
+
+  ctx.fillStyle = '#4c2331';
+  ctx.textAlign = layout.hasCjk ? 'left' : 'center';
+  ctx.textBaseline = 'middle';
+  ctx.font = `700 ${layout.fontSize}px ${layout.family}`;
+
+  layout.lines.forEach((line, index) => {
+    const y = startY + index * layout.fontSize * layout.lineHeight;
+    const x = layout.hasCjk ? 220 : baseX;
+    ctx.fillText(line, x, y, layout.maxWidth);
   });
 }
 
-function applyExportOverrides(root) {
-  if (!(root instanceof HTMLElement)) return;
-
-  root.style.transform = 'none';
-  root.style.margin = '0';
-  root.style.left = '0';
-  root.style.top = '0';
-
-  root.querySelectorAll('*').forEach((element) => {
-    if (!(element instanceof HTMLElement)) return;
-
-    element.style.animation = 'none';
-    element.style.transition = 'none';
-    element.style.caretColor = 'transparent';
-  });
+function drawName(ctx, name) {
+  ctx.save();
+  ctx.fillStyle = 'rgba(72, 37, 55, 0.62)';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.font = '500 30px "Trebuchet MS", "Avenir Next", sans-serif';
+  ctx.letterSpacing = '0.18em';
+  ctx.fillText(name.toUpperCase(), EXPORT_SIZE / 2, 622, 420);
+  ctx.restore();
 }
 
-function materializePinStem(sourceRoot, targetRoot) {
-  const sourcePins = sourceRoot.querySelectorAll('.note-card__pin');
-  const targetPins = targetRoot.querySelectorAll('.note-card__pin');
+async function drawStickers(ctx, stickers) {
+  for (const sticker of stickers) {
+    const assetSticker = stickerMap[sticker.stickerId];
+    if (!assetSticker) continue;
 
-  sourcePins.forEach((sourcePin, index) => {
-    const targetPin = targetPins[index];
-    if (!(sourcePin instanceof HTMLElement) || !(targetPin instanceof HTMLElement)) return;
+    const image = await loadImage(assetSticker.src);
+    const size = 108 * sticker.scale;
+    const x = (sticker.x / 100) * EXPORT_SIZE;
+    const y = (sticker.y / 100) * EXPORT_SIZE;
 
-    const pseudo = window.getComputedStyle(sourcePin, '::after');
-    const stem = document.createElement('span');
-    stem.setAttribute('aria-hidden', 'true');
-    stem.style.position = 'absolute';
-    stem.style.left = pseudo.left || '50%';
-    stem.style.top = pseudo.top || '78%';
-    stem.style.width = pseudo.width || '3px';
-    stem.style.height = pseudo.height || '20px';
-    stem.style.borderRadius = pseudo.borderRadius || '999px';
-    stem.style.background = pseudo.background || 'linear-gradient(180deg, #fef7ed, #7b5d3f)';
-    stem.style.transform = pseudo.transform || 'translateX(-50%)';
-    stem.style.pointerEvents = 'none';
-    targetPin.appendChild(stem);
-  });
+    ctx.save();
+    ctx.translate(x, y);
+    ctx.rotate((sticker.rotation * Math.PI) / 180);
+    ctx.drawImage(image, -size / 2, -size / 2, size, size);
+    ctx.restore();
+  }
 }
 
-function scrubClonedDocument(clonedDocument, sourceRoot) {
-  clonedDocument.querySelectorAll('style, link[rel="stylesheet"]').forEach((node) => node.remove());
+function normalizeExportNote(note) {
+  const designId = note.design_id || note.designId || 'blank-paper';
+  const themeId = note.theme_id || note.themeId || 'cream';
+  const message = note.message?.trim() || 'Write a little note...';
+  const name = (note.name?.trim() || 'Anonymous').slice(0, 24);
+  const stickers = normalizeStickerEntries(note.stickers || []);
+  const pinColorId = note.pin_color || note.pinColor || getPushpinColor(note.stickers || []);
 
-  const safeFontStyle = clonedDocument.createElement('style');
-  safeFontStyle.textContent = `
-    @font-face {
-      font-family: "Caveat";
-      src: ${CAVEAT_SOURCE} format("woff2");
-      font-style: normal;
-      font-weight: 700;
-      font-display: swap;
-    }
-  `;
-  clonedDocument.head.appendChild(safeFontStyle);
-
-  const clonedRoot = clonedDocument.querySelector(`[${EXPORT_ATTR}="true"]`);
-  if (!(clonedRoot instanceof HTMLElement)) return null;
-
-  copyComputedStyles(sourceRoot, clonedRoot);
-  applyExportOverrides(clonedRoot);
-  materializePinStem(sourceRoot, clonedRoot);
-
-  return clonedRoot;
+  return {
+    design: noteDesignMap[designId] || noteDesignMap['blank-paper'],
+    theme: themeMap[themeId] || themeMap.cream,
+    message,
+    name,
+    stickers,
+    pin: pinColorId && pinColorId !== 'none' ? pushpinMap[pinColorId] : null,
+  };
 }
 
 function canvasToBlob(canvas) {
@@ -177,50 +327,51 @@ function triggerDownload(url, filename) {
   link.remove();
 }
 
-export async function exportNotePng(node, noteId) {
-  if (!node) {
+export async function exportNotePng(note, noteId = 'note') {
+  if (!note) {
     throw new Error('Could not find the note preview to export.');
   }
 
   await ensureCaveatFont();
-  const exportStage = buildExportStage(node);
+
+  const normalized = normalizeExportNote(note);
+  const canvas = document.createElement('canvas');
+  canvas.width = EXPORT_SIZE;
+  canvas.height = EXPORT_SIZE;
+
+  const ctx = canvas.getContext('2d');
+  if (!ctx) {
+    throw new Error('Could not create PNG canvas.');
+  }
+
+  ctx.clearRect(0, 0, EXPORT_SIZE, EXPORT_SIZE);
+
+  if (normalized.design.isBlank) {
+    drawBlankPaper(ctx, normalized.theme);
+  } else if (normalized.design.asset) {
+    const paperImage = await loadImage(normalized.design.asset);
+    ctx.drawImage(paperImage, 92, 92, 616, 616);
+  }
+
+  drawPushpin(ctx, normalized.pin);
+  drawMessage(ctx, normalized.message);
+  drawName(ctx, normalized.name);
+  await drawStickers(ctx, normalized.stickers);
+
+  const filename = `notie-${noteId || 'note'}.png`;
 
   try {
-    await new Promise((resolve) => window.requestAnimationFrame(resolve));
-
-    const canvas = await html2canvas(exportStage.clone, {
-      backgroundColor: null,
-      scale: 2,
-      width: EXPORT_SIZE,
-      height: EXPORT_SIZE,
-      useCORS: true,
-      logging: false,
-      removeContainer: true,
-      onclone: (clonedDocument) => {
-        scrubClonedDocument(clonedDocument, exportStage.clone);
-      },
-    });
-
-    const filename = `notie-${noteId || 'note'}.png`;
-
-    try {
-      const blob = await canvasToBlob(canvas);
-      const objectUrl = window.URL.createObjectURL(blob);
-      triggerDownload(objectUrl, filename);
-      window.setTimeout(() => window.URL.revokeObjectURL(objectUrl), 1500);
-    } catch (blobError) {
-      console.warn('Blob export failed, falling back to data URL download.', blobError);
-      const dataUrl = canvas.toDataURL('image/png');
-      triggerDownload(dataUrl, filename);
-    }
-
-    return true;
-  } catch (error) {
-    console.error('PNG export failed.', error);
-    throw error;
-  } finally {
-    exportStage.cleanup();
+    const blob = await canvasToBlob(canvas);
+    const objectUrl = window.URL.createObjectURL(blob);
+    triggerDownload(objectUrl, filename);
+    window.setTimeout(() => window.URL.revokeObjectURL(objectUrl), 1500);
+  } catch (blobError) {
+    console.warn('Blob export failed, falling back to data URL download.', blobError);
+    const dataUrl = canvas.toDataURL('image/png');
+    triggerDownload(dataUrl, filename);
   }
+
+  return true;
 }
 
 export { EXPORT_SIZE };

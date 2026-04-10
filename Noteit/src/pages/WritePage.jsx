@@ -85,9 +85,10 @@ export default function WritePage() {
 
     setIsExporting(true);
     try {
-      await exportNotePng(exportRef.current, 'preview');
+      await exportNotePng(draft, 'preview');
       setError('');
-    } catch {
+    } catch (exportError) {
+      console.error('Write page PNG export failed.', exportError);
       setError('Could not download PNG right now. Please try again.');
     } finally {
       setIsExporting(false);

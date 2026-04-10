@@ -14,7 +14,7 @@ export default function NoteModal({ note, onClose, onDelete }) {
 
     setIsExporting(true);
     try {
-      await exportNotePng(exportRef.current, note.id);
+      await exportNotePng(note, note.id);
       setExportError('');
     } catch (error) {
       console.error('Modal PNG export failed.', error);

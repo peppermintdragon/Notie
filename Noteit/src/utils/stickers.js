@@ -15,6 +15,7 @@ export const stickerOptions = [
 export const stickerMap = Object.fromEntries(stickerOptions.map((sticker) => [sticker.id, sticker]));
 
 export const pushpinOptions = [
+  { id: 'none', label: 'None', color: 'transparent', edge: 'transparent', shadow: 'transparent' },
   { id: 'honey', label: 'Honey', color: '#d8ad4f', edge: '#9c6d1f', shadow: 'rgba(112, 73, 20, 0.28)' },
   { id: 'berry', label: 'Berry', color: '#d97987', edge: '#964654', shadow: 'rgba(123, 52, 64, 0.28)' },
   { id: 'sage', label: 'Sage', color: '#9ab48a', edge: '#5f7c4f', shadow: 'rgba(79, 102, 61, 0.26)' },
@@ -110,16 +111,16 @@ export function normalizeStickerEntries(stickers) {
     .filter(Boolean);
 }
 
-export function getPushpinColor(entries, fallback = 'honey') {
+export function getPushpinColor(entries, fallback = null) {
   const parsed = parseDecorEntries(entries);
   const meta = parsed.find((entry) => entry && typeof entry === 'object' && entry.type === 'pin');
   return pushpinMap[meta?.color] ? meta.color : fallback;
 }
 
-export function serializeStickerEntries(stickers, pinColor = 'honey') {
+export function serializeStickerEntries(stickers, pinColor = null) {
   const serialized = normalizeStickerEntries(stickers).map((sticker) => JSON.stringify(sticker));
 
-  if (pinColor && pushpinMap[pinColor]) {
+  if (pinColor && pinColor !== 'none' && pushpinMap[pinColor]) {
     serialized.push(JSON.stringify({ type: 'pin', color: pinColor }));
   }
 

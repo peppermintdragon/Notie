@@ -11,7 +11,7 @@ export default function PushpinPicker({ value, onChange }) {
             key={pin.id}
             type="button"
             className={`pushpin-chip ${value === pin.id ? 'is-active' : ''}`}
-            style={{
+            style={pin.id === 'none' ? undefined : {
               '--pin-color': pin.color,
               '--pin-edge': pin.edge,
               '--pin-shadow': pin.shadow,
@@ -20,7 +20,7 @@ export default function PushpinPicker({ value, onChange }) {
             onClick={() => onChange(pin.id)}
             whileTap={{ scale: 0.92 }}
           >
-            <span className="pushpin-chip__head" />
+            <span className={`pushpin-chip__head ${pin.id === 'none' ? 'is-none' : ''}`} />
           </motion.button>
         ))}
       </div>

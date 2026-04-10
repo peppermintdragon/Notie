@@ -301,6 +301,33 @@ button:disabled {
     0 9px 14px var(--pin-shadow);
 }
 
+.pushpin-chip__head.is-none {
+  width: 26px;
+  height: 26px;
+  background: transparent;
+  box-shadow: none;
+}
+
+.pushpin-chip__head.is-none::before,
+.pushpin-chip__head.is-none::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 18px;
+  height: 2px;
+  border-radius: 999px;
+  background: rgba(141, 107, 73, 0.8);
+}
+
+.pushpin-chip__head.is-none::before {
+  transform: translate(-50%, -50%) rotate(45deg);
+}
+
+.pushpin-chip__head.is-none::after {
+  transform: translate(-50%, -50%) rotate(-45deg);
+}
+
 .pushpin-chip__head::after {
   content: "";
   position: absolute;
@@ -311,6 +338,14 @@ button:disabled {
   border-radius: 999px;
   background: linear-gradient(180deg, #fef7ed, var(--pin-edge));
   transform: translateX(-50%);
+}
+
+.pushpin-chip__head.is-none::after {
+  top: 50%;
+  width: 18px;
+  height: 2px;
+  background: rgba(141, 107, 73, 0.8);
+  transform: translate(-50%, -50%) rotate(-45deg);
 }
 
 .sticker-chip {

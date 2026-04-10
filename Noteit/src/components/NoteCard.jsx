@@ -61,8 +61,8 @@ const NoteCard = forwardRef(function NoteCard(
   const theme = themeMap[note.theme_id || note.themeId] || themeMap.cream;
   const design = noteDesignMap[note.design_id || note.designId] || noteDesigns[0];
   const stickers = normalizeStickerEntries(note.stickers || []);
-  const pinColorId = note.pin_color || note.pinColor || getPushpinColor(note.stickers || [], 'honey');
-  const pin = pushpinMap[pinColorId] || pushpinMap.honey;
+  const pinColorId = note.pin_color || note.pinColor || getPushpinColor(note.stickers || []);
+  const pin = pinColorId ? pushpinMap[pinColorId] : null;
   const message = note.message?.trim() || 'Write a little note...';
   const displayName = note.name?.trim() || 'Anonymous';
 
@@ -73,9 +73,9 @@ const NoteCard = forwardRef(function NoteCard(
     '--note-accent': theme.accent,
     '--note-shadow': theme.shadow,
     '--note-art': design.asset ? `url("${design.asset}")` : 'none',
-    '--pin-color': pin.color,
-    '--pin-edge': pin.edge,
-    '--pin-shadow': pin.shadow,
+    '--pin-color': pin?.color || 'transparent',
+    '--pin-edge': pin?.edge || 'transparent',
+    '--pin-shadow': pin?.shadow || 'transparent',
     width: preview ? 'min(76vw, 300px)' : `${design.boardWidth}px`,
     minHeight: preview ? '310px' : `${design.boardHeight}px`,
     ...style,
@@ -148,7 +148,7 @@ const NoteCard = forwardRef(function NoteCard(
       whileTap={interactive ? { scale: 0.98 } : undefined}
       layout
     >
-      <span className="note-card__pin" aria-hidden="true" />
+      {pin ? <span className="note-card__pin" aria-hidden="true" /> : null}
       <div className="note-card__inner">
         <div className="note-stickers">
           {stickers.map((sticker) => {

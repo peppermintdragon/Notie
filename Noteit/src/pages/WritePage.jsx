@@ -25,7 +25,7 @@ const defaultDraft = {
   message: '',
   designId: 'blank-paper',
   themeId: 'cream',
-  pinColor: 'honey',
+  pinColor: 'none',
   stickers: [],
 };
 
@@ -37,7 +37,7 @@ function buildLocalNote(draft, name, message) {
     message,
     design_id: draft.designId,
     theme_id: draft.themeId,
-    pin_color: draft.pinColor,
+    pin_color: draft.pinColor === 'none' ? null : draft.pinColor,
     stickers: normalizeStickerEntries(draft.stickers),
     ...getBalancedPlacement(readLocalNotes()),
   };

@@ -4,8 +4,8 @@ import { colorThemes } from '../utils/colorThemes';
 export default function ThemePicker({ value, onChange }) {
   return (
     <section className="control-block">
-      <div className="control-block__label">純色</div>
-      <div className="swatch-row" aria-label="Theme picker">
+      <div className="control-block__label">Note Color</div>
+      <div className="swatch-row" aria-label="Note color">
         {colorThemes.map((theme) => (
           <motion.button
             key={theme.id}

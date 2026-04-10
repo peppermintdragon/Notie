@@ -28,6 +28,9 @@ create table notes (
 5. Run the app:
    `npm run dev`
 
+If PowerShell blocks `npm` with an execution policy error, use:
+`.\start-local.cmd`
+
 ## Notes
 
 - The name field persists in `localStorage`.

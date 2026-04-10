@@ -1,39 +1,26 @@
 import { motion } from 'framer-motion';
+import { stickerOptions } from '../utils/stickers';
 
-const stickerOptions = ['🧁', '🍰', '🍒', '🍵', '☕', '🌸', '🍃', '✨', '🐱', '💤'];
-
-export default function StickerTray({ value, onChange }) {
-  const toggleSticker = (emoji) => {
-    const hasSticker = value.includes(emoji);
-
-    if (hasSticker) {
-      onChange(value.filter((item) => item !== emoji));
-      return;
-    }
-
-    if (value.length >= 3) return;
-    onChange([...value, emoji]);
-  };
-
+export default function StickerTray({ value, onToggle }) {
   return (
     <section className="control-block">
-      <div className="control-block__label">貼紙</div>
+      <div className="control-block__label">Stickers</div>
       <div className="sticker-tray" aria-label="Sticker tray">
-        {stickerOptions.map((emoji) => {
-          const selected = value.includes(emoji);
+        {stickerOptions.map((sticker) => {
+          const selected = value.some((item) => item.stickerId === sticker.id);
 
           return (
             <motion.button
-              key={emoji}
+              key={sticker.id}
               type="button"
               className={`sticker-chip ${selected ? 'is-active' : ''}`}
-              onClick={() => toggleSticker(emoji)}
+              onClick={() => onToggle(sticker.id)}
               whileTap={{ scale: 0.92 }}
               animate={selected ? { scale: [0.82, 1.08, 1] } : { scale: 1 }}
               transition={{ duration: 0.28 }}
-              aria-label={`Toggle sticker ${emoji}`}
+              aria-label={`Toggle ${sticker.label}`}
             >
-              {emoji}
+              <img src={sticker.src} alt="" className="sticker-chip__image" />
             </motion.button>
           );
         })}

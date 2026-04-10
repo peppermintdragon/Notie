@@ -12,13 +12,14 @@ export default function Header({ board = false, subtitle }) {
       <div className="brand-stack">
         <div className="brand-mark">
           <span className="brand-mark__dot" />
-          <span className="brand-mark__text">notie</span>
+          <span className="brand-mark__text">Notie app</span>
         </div>
         {subtitle ? <p className="brand-subtitle">{subtitle}</p> : null}
+        <p className="brand-credit">A playful wall by peppermintdragon.</p>
       </div>
 
       <Link className="pill-link" to={board ? '/' : '/board'}>
-        {board ? '✏️ 寫便條' : '📌 看黑板'}
+        {board ? 'Write Note' : 'View Board'}
       </Link>
     </motion.header>
   );

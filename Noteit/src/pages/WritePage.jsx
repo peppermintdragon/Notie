@@ -1,6 +1,6 @@
-import { useRef, useState } from 'react';
+import { useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { motion } from 'framer-motion';
+import { AnimatePresence, motion } from 'framer-motion';
 import Header from '../components/Header';
 import PushpinPicker from '../components/PushpinPicker';
 import StylePicker from '../components/StylePicker';
@@ -47,6 +47,7 @@ export default function WritePage() {
   const navigate = useNavigate();
   const exportRef = useRef(null);
   const [draft, setDraft] = useState(defaultDraft);
+  const [stepIndex, setStepIndex] = useState(0);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
   const [pulsePreview, setPulsePreview] = useState(false);
@@ -54,6 +55,8 @@ export default function WritePage() {
   const [saveMode, setSaveMode] = useState(supabase ? 'cloud' : 'local');
 
   const messageCount = draft.message.length;
+  const selectedStickerCount = draft.stickers.length;
+  const displayName = draft.name.trim() || 'Anonymous';
 
   const updateDraft = (patch) => {
     const next = { ...draft, ...patch };
@@ -78,6 +81,48 @@ export default function WritePage() {
     updateDraft({
       stickers: updateStickerEntry(draft.stickers, stickerId, patch),
     });
+  };
+
+  const steps = useMemo(() => [
+    {
+      id: 'write',
+      eyebrow: 'Step 01',
+      title: 'Write the first spark.',
+      subtitle: 'Start with the thought, a tiny confession, or a sweet little line.',
+      ready: draft.message.trim().length > 0,
+    },
+    {
+      id: 'style',
+      eyebrow: 'Step 02',
+      title: 'Pick the paper mood.',
+      subtitle: 'Choose the note shape and color before it lands on the board.',
+      ready: true,
+    },
+    {
+      id: 'decorate',
+      eyebrow: 'Step 03',
+      title: 'Decorate it a little.',
+      subtitle: 'Add a pushpin and a few stickers so it feels like yours.',
+      ready: true,
+    },
+    {
+      id: 'finish',
+      eyebrow: 'Step 04',
+      title: 'Preview and pin it.',
+      subtitle: 'Download it if you want, or send it straight to the corkboard.',
+      ready: draft.message.trim().length > 0,
+    },
+  ], [draft.message]);
+
+  const activeStep = steps[stepIndex];
+
+  const goNext = () => {
+    if (!activeStep.ready) return;
+    setStepIndex((current) => Math.min(current + 1, steps.length - 1));
+  };
+
+  const goBack = () => {
+    setStepIndex((current) => Math.max(current - 1, 0));
   };
 
   const handleExport = async () => {
@@ -151,84 +196,176 @@ export default function WritePage() {
   return (
     <div className="app-bg app-bg--write">
       <main className="notie-shell">
-        <Header subtitle="Pick a paper, add a few stickers, and pin it to the board." />
+        <Header subtitle="A guided little ritual for making your first note." />
 
         <motion.form
-          className="write-layout"
+          className="write-layout write-layout--onboarding"
           onSubmit={handleSubmit}
           initial={{ opacity: 0, y: 18 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, ease: 'easeOut' }}
         >
-          <div className="write-layout__controls">
-            <StylePicker value={draft.designId} onChange={(designId) => updateDraft({ designId })} />
-            <ThemePicker value={draft.themeId} onChange={(themeId) => updateDraft({ themeId })} />
-            <PushpinPicker value={draft.pinColor} onChange={(pinColor) => updateDraft({ pinColor })} />
-            <StickerTray value={draft.stickers} onToggle={handleToggleSticker} />
-
-            <section className="control-block">
-              <label className="control-block__label" htmlFor="name-input">Your Name</label>
-              <input
-                id="name-input"
-                className="text-input"
-                maxLength={12}
-                value={draft.name}
-                onChange={(event) => updateDraft({ name: event.target.value.slice(0, 12) })}
-                placeholder="Call me..."
-                aria-label="Your Name"
-              />
-            </section>
-
-            <section className="control-block">
-              <label className="control-block__label" htmlFor="message-input">Message</label>
-              <textarea
-                id="message-input"
-                className="text-area"
-                maxLength={100}
-                value={draft.message}
-                onChange={(event) => updateDraft({ message: event.target.value.slice(0, 100) })}
-                placeholder="What do you want to say today..."
-                aria-label="Message"
-              />
-              <div className={`character-counter ${messageCount >= 84 ? 'is-warning' : ''}`}>
-                {messageCount} / 100
-              </div>
-            </section>
-
-            {error ? <p className="form-error">{error}</p> : null}
-            <p className="form-hint">
-              Save mode: {saveMode === 'cloud' ? 'Supabase cloud' : 'Local fallback'}.
-            </p>
-
-            <div className="action-row">
-              <button
-                type="button"
-                className="secondary-button"
-                onClick={handleExport}
-                disabled={isExporting}
-              >
-                {isExporting ? 'Generating...' : 'Download PNG'}
-              </button>
-              <motion.button
-                type="submit"
-                className="primary-button"
-                disabled={isSubmitting}
-                whileHover={{ y: -2, boxShadow: '0 16px 28px rgba(120, 87, 47, 0.25)' }}
-                whileTap={{ scale: 0.98 }}
-              >
-                {isSubmitting ? 'Pinning...' : 'Pin To Board'}
-              </motion.button>
+          <div className="write-layout__controls write-layout__controls--onboarding">
+            <div className="onboarding-progress" aria-label="Onboarding progress">
+              {steps.map((step, index) => (
+                <button
+                  key={step.id}
+                  type="button"
+                  className={`onboarding-progress__dot ${index === stepIndex ? 'is-active' : ''} ${index < stepIndex ? 'is-done' : ''}`}
+                  onClick={() => setStepIndex(index)}
+                  aria-label={`Go to ${step.title}`}
+                />
+              ))}
             </div>
+
+            <AnimatePresence mode="wait">
+              <motion.section
+                key={activeStep.id}
+                className="onboarding-card"
+                initial={{ opacity: 0, y: 16, scale: 0.98 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                exit={{ opacity: 0, y: -12, scale: 0.99 }}
+                transition={{ duration: 0.32, ease: 'easeOut' }}
+              >
+                <p className="onboarding-card__eyebrow">{activeStep.eyebrow}</p>
+                <h2 className="onboarding-card__title">{activeStep.title}</h2>
+                <p className="onboarding-card__subtitle">{activeStep.subtitle}</p>
+
+                {activeStep.id === 'write' ? (
+                  <div className="onboarding-card__body">
+                    <section className="onboarding-notepad">
+                      <span className="onboarding-notepad__tape" aria-hidden="true" />
+                      <label className="sr-only" htmlFor="message-input">Message</label>
+                      <textarea
+                        id="message-input"
+                        className="onboarding-notepad__textarea"
+                        maxLength={100}
+                        value={draft.message}
+                        onChange={(event) => updateDraft({ message: event.target.value.slice(0, 100) })}
+                        placeholder="What do you want to say today..."
+                        aria-label="Message"
+                      />
+                      <div className="onboarding-notepad__footer">
+                        <label className="onboarding-name" htmlFor="name-input">
+                          <span className="onboarding-name__label">Signed by</span>
+                          <input
+                            id="name-input"
+                            className="onboarding-name__input"
+                            maxLength={12}
+                            value={draft.name}
+                            onChange={(event) => updateDraft({ name: event.target.value.slice(0, 12) })}
+                            placeholder="Call me..."
+                            aria-label="Your Name"
+                          />
+                        </label>
+                        <div className={`character-counter ${messageCount >= 84 ? 'is-warning' : ''}`}>
+                          {messageCount} / 100
+                        </div>
+                      </div>
+                    </section>
+                  </div>
+                ) : null}
+
+                {activeStep.id === 'style' ? (
+                  <div className="onboarding-card__body">
+                    <StylePicker value={draft.designId} onChange={(designId) => updateDraft({ designId })} label="Choose a paper" />
+                    <ThemePicker value={draft.themeId} onChange={(themeId) => updateDraft({ themeId })} label="Choose a color" />
+                  </div>
+                ) : null}
+
+                {activeStep.id === 'decorate' ? (
+                  <div className="onboarding-card__body">
+                    <PushpinPicker value={draft.pinColor} onChange={(pinColor) => updateDraft({ pinColor })} />
+                    <StickerTray value={draft.stickers} onToggle={handleToggleSticker} />
+                    <p className="onboarding-card__hint">
+                      {selectedStickerCount ? `${selectedStickerCount} sticker${selectedStickerCount > 1 ? 's' : ''} on your note.` : 'Tap a sticker to place it on the note.'}
+                    </p>
+                  </div>
+                ) : null}
+
+                {activeStep.id === 'finish' ? (
+                  <div className="onboarding-card__body onboarding-card__body--review">
+                    <div className="onboarding-review">
+                      <div>
+                        <div className="onboarding-review__label">Mode</div>
+                        <div className="onboarding-review__value">{saveMode === 'cloud' ? 'Supabase cloud' : 'Local fallback'}</div>
+                      </div>
+                      <div>
+                        <div className="onboarding-review__label">Paper</div>
+                        <div className="onboarding-review__value">{draft.designId}</div>
+                      </div>
+                      <div>
+                        <div className="onboarding-review__label">Signed</div>
+                        <div className="onboarding-review__value">{displayName}</div>
+                      </div>
+                    </div>
+
+                    <div className="action-row action-row--stacked">
+                      <button
+                        type="button"
+                        className="secondary-button"
+                        onClick={handleExport}
+                        disabled={isExporting}
+                      >
+                        {isExporting ? 'Generating...' : 'Download PNG'}
+                      </button>
+                      <motion.button
+                        type="submit"
+                        className="primary-button"
+                        disabled={isSubmitting}
+                        whileHover={{ y: -2, boxShadow: '0 16px 28px rgba(120, 87, 47, 0.25)' }}
+                        whileTap={{ scale: 0.98 }}
+                      >
+                        {isSubmitting ? 'Pinning...' : 'Pin To Board'}
+                      </motion.button>
+                    </div>
+                  </div>
+                ) : null}
+
+                {error ? <p className="form-error">{error}</p> : null}
+
+                <div className="onboarding-card__actions">
+                  <button
+                    type="button"
+                    className="ghost-button"
+                    onClick={goBack}
+                    disabled={stepIndex === 0}
+                  >
+                    Back
+                  </button>
+                  {stepIndex < steps.length - 1 ? (
+                    <motion.button
+                      type="button"
+                      className="primary-button"
+                      disabled={!activeStep.ready}
+                      onClick={goNext}
+                      whileTap={{ scale: 0.98 }}
+                    >
+                      Continue
+                    </motion.button>
+                  ) : null}
+                </div>
+              </motion.section>
+            </AnimatePresence>
           </div>
 
-          <div className="write-layout__preview">
-            <NotePreview
-              note={draft}
-              exportRef={exportRef}
-              pulse={pulsePreview}
-              editable
-              onStickerMove={handleStickerMove}
-            />
+          <div className="write-layout__preview write-layout__preview--onboarding">
+            <div className="onboarding-preview">
+              <div className="onboarding-preview__badge">Live Preview</div>
+              <div className="onboarding-preview__copy">
+                <h3>Every tap updates the note instantly.</h3>
+                <p>Move the stickers, test the paper, then pin it when it feels right.</p>
+              </div>
+              <div className="onboarding-preview__stage">
+                <NotePreview
+                  note={draft}
+                  exportRef={exportRef}
+                  pulse={pulsePreview}
+                  editable
+                  onStickerMove={handleStickerMove}
+                />
+              </div>
+            </div>
           </div>
         </motion.form>
       </main>

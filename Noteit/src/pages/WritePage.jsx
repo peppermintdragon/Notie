@@ -54,6 +54,13 @@ export default function WritePage() {
   const [error, setError] = useState('');
   const [saveMode, setSaveMode] = useState(supabase ? 'cloud' : 'local');
 
+  const floatingNotes = useMemo(() => ([
+    { id: 'a', x: '7%', y: '12%', width: 92, height: 118, rotation: -10, delay: '0s', duration: '9s', tone: 'cream' },
+    { id: 'b', x: '83%', y: '16%', width: 88, height: 112, rotation: 9, delay: '1.2s', duration: '8.5s', tone: 'rose' },
+    { id: 'c', x: '14%', y: '74%', width: 104, height: 128, rotation: 8, delay: '0.8s', duration: '10s', tone: 'mint' },
+    { id: 'd', x: '76%', y: '79%', width: 86, height: 108, rotation: -8, delay: '1.6s', duration: '9.2s', tone: 'sky' },
+  ]), []);
+
   const messageCount = draft.message.length;
   const selectedStickerCount = draft.stickers.length;
   const displayName = draft.name.trim() || 'Anonymous';
@@ -115,6 +122,7 @@ export default function WritePage() {
   ], [draft.message]);
 
   const activeStep = steps[stepIndex];
+  const stepDirection = stepIndex % 2 === 0 ? 1 : -1;
 
   const goNext = () => {
     if (!activeStep.ready) return;
@@ -205,6 +213,24 @@ export default function WritePage() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, ease: 'easeOut' }}
         >
+          <div className="onboarding-atmosphere" aria-hidden="true">
+            {floatingNotes.map((note) => (
+              <span
+                key={note.id}
+                className={`onboarding-atmosphere__note onboarding-atmosphere__note--${note.tone}`}
+                style={{
+                  left: note.x,
+                  top: note.y,
+                  width: `${note.width}px`,
+                  height: `${note.height}px`,
+                  '--note-rotation': `${note.rotation}deg`,
+                  '--float-delay': note.delay,
+                  '--float-duration': note.duration,
+                }}
+              />
+            ))}
+          </div>
+
           <div className="write-layout__controls write-layout__controls--onboarding">
             <div className="onboarding-progress" aria-label="Onboarding progress">
               {steps.map((step, index) => (
@@ -222,10 +248,10 @@ export default function WritePage() {
               <motion.section
                 key={activeStep.id}
                 className="onboarding-card"
-                initial={{ opacity: 0, y: 16, scale: 0.98 }}
+                initial={{ opacity: 0, x: 38 * stepDirection, y: 16, scale: 0.98, rotate: 1.2 * stepDirection }}
                 animate={{ opacity: 1, y: 0, scale: 1 }}
-                exit={{ opacity: 0, y: -12, scale: 0.99 }}
-                transition={{ duration: 0.32, ease: 'easeOut' }}
+                exit={{ opacity: 0, x: -28 * stepDirection, y: -10, scale: 0.99, rotate: -0.8 * stepDirection }}
+                transition={{ duration: 0.34, ease: [0.22, 1, 0.36, 1] }}
               >
                 <p className="onboarding-card__eyebrow">{activeStep.eyebrow}</p>
                 <h2 className="onboarding-card__title">{activeStep.title}</h2>
@@ -277,6 +303,23 @@ export default function WritePage() {
                   <div className="onboarding-card__body">
                     <PushpinPicker value={draft.pinColor} onChange={(pinColor) => updateDraft({ pinColor })} />
                     <StickerTray value={draft.stickers} onToggle={handleToggleSticker} />
+                    <div className="onboarding-sticker-summary" aria-live="polite">
+                      {draft.stickers.length ? (
+                        draft.stickers.map((sticker, index) => (
+                          <motion.span
+                            key={`${sticker.stickerId}-${index}`}
+                            className="onboarding-sticker-summary__chip"
+                            initial={{ opacity: 0, scale: 0.6, rotate: -8 }}
+                            animate={{ opacity: 1, scale: 1, rotate: 0 }}
+                            transition={{ duration: 0.2, delay: index * 0.04 }}
+                          >
+                            {sticker.stickerId.replace(/-/g, ' ')}
+                          </motion.span>
+                        ))
+                      ) : (
+                        <span className="onboarding-sticker-summary__empty">No stickers yet</span>
+                      )}
+                    </div>
                     <p className="onboarding-card__hint">
                       {selectedStickerCount ? `${selectedStickerCount} sticker${selectedStickerCount > 1 ? 's' : ''} on your note.` : 'Tap a sticker to place it on the note.'}
                     </p>
@@ -351,12 +394,25 @@ export default function WritePage() {
 
           <div className="write-layout__preview write-layout__preview--onboarding">
             <div className="onboarding-preview">
-              <div className="onboarding-preview__badge">Live Preview</div>
+              <motion.div
+                className="onboarding-preview__badge"
+                initial={{ opacity: 0, y: -8 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.35, delay: 0.1 }}
+              >
+                Live Preview
+              </motion.div>
               <div className="onboarding-preview__copy">
                 <h3>Every tap updates the note instantly.</h3>
                 <p>Move the stickers, test the paper, then pin it when it feels right.</p>
               </div>
-              <div className="onboarding-preview__stage">
+              <motion.div
+                className="onboarding-preview__stage"
+                key={activeStep.id}
+                initial={{ opacity: 0.72, scale: 0.97, y: 8 }}
+                animate={{ opacity: 1, scale: 1, y: 0 }}
+                transition={{ duration: 0.28, ease: 'easeOut' }}
+              >
                 <NotePreview
                   note={draft}
                   exportRef={exportRef}
@@ -364,7 +420,7 @@ export default function WritePage() {
                   editable
                   onStickerMove={handleStickerMove}
                 />
-              </div>
+              </motion.div>
             </div>
           </div>
         </motion.form>

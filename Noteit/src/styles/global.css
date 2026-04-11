@@ -620,14 +620,76 @@ button:disabled {
 }
 
 .write-layout--onboarding {
+  position: relative;
   grid-template-columns: minmax(0, 0.9fr) minmax(360px, 1.1fr);
   gap: 28px;
   padding: 22px;
+  isolation: isolate;
 }
 
 .write-layout__controls--onboarding,
 .write-layout__preview--onboarding {
   align-self: stretch;
+  position: relative;
+  z-index: 1;
+}
+
+.onboarding-atmosphere {
+  position: absolute;
+  inset: 18px;
+  overflow: hidden;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.onboarding-atmosphere__note {
+  position: absolute;
+  border-radius: 8px 18px 18px 18px;
+  opacity: 0.18;
+  transform: rotate(var(--note-rotation));
+  animation: onboardingFloat var(--float-duration, 9s) ease-in-out infinite;
+  animation-delay: var(--float-delay, 0s);
+  box-shadow: 0 14px 24px rgba(115, 82, 45, 0.08);
+}
+
+.onboarding-atmosphere__note--cream {
+  background:
+    repeating-linear-gradient(
+      to bottom,
+      rgba(255, 255, 255, 0.88) 0,
+      rgba(255, 255, 255, 0.88) 26px,
+      rgba(201, 151, 74, 0.1) 26px,
+      rgba(201, 151, 74, 0.1) 27px
+    );
+}
+
+.onboarding-atmosphere__note--rose {
+  background:
+    radial-gradient(circle at 20% 20%, rgba(255, 255, 255, 0.35), transparent 30%),
+    linear-gradient(180deg, rgba(255, 244, 246, 0.95), rgba(255, 231, 236, 0.92));
+}
+
+.onboarding-atmosphere__note--mint {
+  background:
+    radial-gradient(circle at 80% 18%, rgba(255, 255, 255, 0.32), transparent 30%),
+    linear-gradient(180deg, rgba(238, 248, 239, 0.94), rgba(217, 236, 215, 0.92));
+}
+
+.onboarding-atmosphere__note--sky {
+  background:
+    radial-gradient(circle at 24% 18%, rgba(255, 255, 255, 0.32), transparent 30%),
+    linear-gradient(180deg, rgba(240, 246, 255, 0.94), rgba(221, 233, 248, 0.92));
+}
+
+@keyframes onboardingFloat {
+  0%,
+  100% {
+    transform: rotate(var(--note-rotation)) translateY(0);
+  }
+
+  50% {
+    transform: rotate(var(--note-rotation)) translateY(-12px);
+  }
 }
 
 .onboarding-progress {
@@ -725,6 +787,38 @@ button:disabled {
   margin: -2px 2px 0;
   color: #8b725a;
   font-size: 0.9rem;
+}
+
+.onboarding-sticker-summary {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  min-height: 38px;
+  align-items: center;
+}
+
+.onboarding-sticker-summary__chip,
+.onboarding-sticker-summary__empty {
+  display: inline-flex;
+  align-items: center;
+  min-height: 32px;
+  padding: 0 12px;
+  border-radius: 999px;
+  font-size: 0.78rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+}
+
+.onboarding-sticker-summary__chip {
+  background: rgba(255, 249, 239, 0.92);
+  color: #7a5a3d;
+  box-shadow: inset 0 0 0 1px rgba(157, 115, 71, 0.12);
+  text-transform: capitalize;
+}
+
+.onboarding-sticker-summary__empty {
+  background: rgba(125, 91, 52, 0.06);
+  color: #9a7b5b;
 }
 
 .onboarding-notepad {
@@ -879,6 +973,10 @@ button:disabled {
   color: rgba(255, 243, 227, 0.88);
   max-width: 24rem;
   line-height: 1.5;
+}
+
+.onboarding-preview__stage {
+  position: relative;
 }
 
 .onboarding-preview__stage .preview-block {
@@ -1363,6 +1461,10 @@ button:disabled {
     padding: 16px;
   }
 
+  .onboarding-atmosphere {
+    inset: 8px 8px 0;
+  }
+
   .write-layout__preview--onboarding {
     order: -1;
   }
@@ -1381,6 +1483,10 @@ button:disabled {
     padding: 22px 18px 18px;
   }
 
+  .onboarding-card__title {
+    font-size: 2rem;
+  }
+
   .onboarding-card__actions {
     flex-direction: column;
   }
@@ -1396,6 +1502,10 @@ button:disabled {
 
   .onboarding-review {
     grid-template-columns: 1fr;
+  }
+
+  .onboarding-sticker-summary {
+    min-height: 0;
   }
 
   .occasion-hero {

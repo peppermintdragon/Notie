@@ -184,14 +184,14 @@ export default function WritePage() {
               <textarea
                 id="message-input"
                 className="text-area"
-                maxLength={45}
+                maxLength={100}
                 value={draft.message}
-                onChange={(event) => updateDraft({ message: event.target.value.slice(0, 45) })}
+                onChange={(event) => updateDraft({ message: event.target.value.slice(0, 100) })}
                 placeholder="What do you want to say today..."
                 aria-label="Message"
               />
-              <div className={`character-counter ${messageCount >= 38 ? 'is-warning' : ''}`}>
-                {messageCount} / 45
+              <div className={`character-counter ${messageCount >= 84 ? 'is-warning' : ''}`}>
+                {messageCount} / 100
               </div>
             </section>
 

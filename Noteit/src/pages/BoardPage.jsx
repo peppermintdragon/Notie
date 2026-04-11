@@ -8,7 +8,12 @@ import { useRealtimeNotes } from '../hooks/useRealtimeNotes';
 import { getBoardNotesWithFallback, removeLocalNote, updateLocalNote } from '../utils/localNotes';
 import { getSupabaseIssueMessage } from '../utils/supabaseStatus';
 import { deserializeStickerEntries, getPushpinColor } from '../utils/stickers';
-import { generateBoardLayout, getBoardHeight, getBoardWidth } from '../utils/boardPlacement';
+import {
+  generateBoardLayout,
+  getBoardHeight,
+  getBoardSections,
+  getBoardWidth,
+} from '../utils/boardPlacement';
 
 const BOARD_OVERRIDES_KEY = 'notie-board-overrides';
 const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
@@ -113,6 +118,7 @@ export default function BoardPage() {
 
   const boardWidth = useMemo(() => getBoardWidth(notes.length || 1), [notes.length]);
   const boardHeight = useMemo(() => getBoardHeight(), []);
+  const boardSections = useMemo(() => getBoardSections(notes.length || 1), [notes.length]);
 
   const layouts = useMemo(() => {
     const total = notes.length || 1;
@@ -295,8 +301,8 @@ export default function BoardPage() {
       noteDragState.current.moved = true;
     }
 
-    const nextX = clamp(noteDragState.current.originX + deltaX, 18, boardWidth - 250);
-    const nextY = clamp(noteDragState.current.originY + deltaY, 18, boardHeight - 250);
+    const nextX = clamp(noteDragState.current.originX + deltaX, 18, boardWidth - 280);
+    const nextY = clamp(noteDragState.current.originY + deltaY, 18, boardHeight - 280);
 
     setNoteOverrides((current) => ({
       ...current,
@@ -399,6 +405,21 @@ export default function BoardPage() {
                 height: `${boardHeight}px`,
               }}
             >
+              {boardSections.map((section) => (
+                <div
+                  key={section.id}
+                  className="board-surface__section"
+                  style={{
+                    left: `${section.x}px`,
+                    width: `${section.width}px`,
+                  }}
+                >
+                  <div className="board-surface__section-label">
+                    Notes {section.index * 8 + 1}-{section.index * 8 + 8}
+                  </div>
+                </div>
+              ))}
+
               {visibleNotes.map((note, index) => {
                 const layout = layouts[note.id];
                 if (!layout) return null;

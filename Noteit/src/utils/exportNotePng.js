@@ -102,12 +102,12 @@ function wrapMessageLines(ctx, text, maxWidth, hasCjk) {
 function getMessageLayout(ctx, message) {
   const hasCjk = containsCjk(message);
   const family = hasCjk
-    ? '"Noto Sans TC", "Microsoft JhengHei", "PingFang TC", sans-serif'
+    ? '"ZCOOL KuaiLe", "Microsoft JhengHei", "PingFang TC", sans-serif'
     : '"Caveat", "Segoe Print", cursive';
 
-  const maxWidth = EXPORT_SIZE * 0.48;
-  const maxHeight = EXPORT_SIZE * 0.28;
-  const minFontSize = hasCjk ? 32 : 42;
+  const maxWidth = EXPORT_SIZE * 0.5;
+  const maxHeight = EXPORT_SIZE * 0.36;
+  const minFontSize = hasCjk ? 26 : 30;
   let fontSize = hasCjk ? 72 : 82;
   let lines = [];
   let lineHeight = 1.1;
@@ -118,7 +118,7 @@ function getMessageLayout(ctx, message) {
     lines = wrapMessageLines(ctx, message, maxWidth, hasCjk);
     const totalHeight = lines.length * fontSize * lineHeight;
 
-    if (lines.length <= 4 && totalHeight <= maxHeight) {
+    if (lines.length <= 6 && totalHeight <= maxHeight) {
       return {
         hasCjk,
         family,
@@ -261,8 +261,7 @@ function drawName(ctx, name) {
   ctx.fillStyle = 'rgba(72, 37, 55, 0.62)';
   ctx.textAlign = 'center';
   ctx.textBaseline = 'middle';
-  ctx.font = '500 30px "Trebuchet MS", "Avenir Next", sans-serif';
-  ctx.letterSpacing = '0.18em';
+  ctx.font = '700 26px "Syncopate", "Trebuchet MS", sans-serif';
   ctx.fillText(name.toUpperCase(), EXPORT_SIZE / 2, 622, 420);
   ctx.restore();
 }

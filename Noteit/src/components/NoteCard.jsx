@@ -24,12 +24,17 @@ function getMessageStyle(message, preview) {
   const base = hasCjk
     ? (preview ? 1.18 : 1.06)
     : (preview ? 1.52 : 1.4);
+  const fontFamily = hasCjk
+    ? 'var(--font-cjk-handwriting)'
+    : 'var(--font-handwriting)';
 
-  if (length <= 8) return { fontSize: `${base + 0.4}rem`, lineHeight: 1.02 };
-  if (length <= 14) return { fontSize: `${base + 0.18}rem`, lineHeight: 1.06 };
-  if (length <= 20) return { fontSize: `${base}rem`, lineHeight: 1.08 };
-  if (length <= 32) return { fontSize: `${base - 0.12}rem`, lineHeight: 1.12 };
-  return { fontSize: `${base - 0.22}rem`, lineHeight: 1.16 };
+  if (length <= 8) return { fontSize: `${base + 0.4}rem`, lineHeight: 1.02, fontFamily };
+  if (length <= 14) return { fontSize: `${base + 0.18}rem`, lineHeight: 1.06, fontFamily };
+  if (length <= 20) return { fontSize: `${base}rem`, lineHeight: 1.08, fontFamily };
+  if (length <= 32) return { fontSize: `${base - 0.12}rem`, lineHeight: 1.12, fontFamily };
+  if (length <= 48) return { fontSize: `${base - 0.22}rem`, lineHeight: 1.16, fontFamily };
+  if (length <= 72) return { fontSize: `${base - 0.34}rem`, lineHeight: hasCjk ? 1.2 : 1.18, fontFamily };
+  return { fontSize: `${base - 0.46}rem`, lineHeight: hasCjk ? 1.24 : 1.2, fontFamily };
 }
 
 function getHandwritingStyle(note, preview) {

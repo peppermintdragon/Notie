@@ -1,6 +1,11 @@
-const DEFAULT_BOARD_WIDTH = 1400;
-const DEFAULT_BOARD_HEIGHT = 560;
-const BOARD_ROWS = 3;
+const BOARD_PADDING_X = 42;
+const BOARD_PADDING_Y = 44;
+const SECTION_GAP = 74;
+const SECTION_WIDTH = 1320;
+const SECTION_HEIGHT = 620;
+const SECTION_ROWS = 2;
+const SECTION_COLUMNS = 4;
+const NOTES_PER_SECTION = SECTION_ROWS * SECTION_COLUMNS;
 
 function createSeed(value) {
   return String(value || 'note')
@@ -17,21 +22,42 @@ function clamp(value, min, max) {
   return Math.max(min, Math.min(max, value));
 }
 
+export function getSectionCount(noteCount) {
+  return Math.max(1, Math.ceil(Math.max(noteCount, 1) / NOTES_PER_SECTION));
+}
+
 export function getBoardWidth(noteCount) {
-  const cols = Math.max(4, Math.ceil(Math.max(noteCount, 1) / BOARD_ROWS));
-  return Math.max(1400, cols * 250);
+  const sectionCount = getSectionCount(noteCount);
+  return BOARD_PADDING_X * 2 + sectionCount * SECTION_WIDTH + Math.max(0, sectionCount - 1) * SECTION_GAP;
 }
 
 export function getBoardHeight() {
-  return DEFAULT_BOARD_HEIGHT;
+  return SECTION_HEIGHT + BOARD_PADDING_Y * 2;
 }
 
-export function generateBoardLayout(note, index, totalNotes, boardWidth = DEFAULT_BOARD_WIDTH, boardHeight = DEFAULT_BOARD_HEIGHT) {
-  const cols = Math.max(4, Math.min(10, Math.ceil(totalNotes / BOARD_ROWS)));
-  const cellW = boardWidth / cols;
-  const cellH = Math.max(150, (boardHeight - 80) / BOARD_ROWS);
-  const col = index % cols;
-  const row = Math.floor(index / cols) % BOARD_ROWS;
+export function getBoardSections(noteCount) {
+  const sectionCount = getSectionCount(noteCount);
+
+  return Array.from({ length: sectionCount }, (_, index) => {
+    const x = BOARD_PADDING_X + index * (SECTION_WIDTH + SECTION_GAP);
+    return {
+      id: `section-${index + 1}`,
+      index,
+      x,
+      width: SECTION_WIDTH,
+      noteCount: NOTES_PER_SECTION,
+    };
+  });
+}
+
+export function generateBoardLayout(note, index, totalNotes, boardWidth = getBoardWidth(totalNotes), boardHeight = getBoardHeight()) {
+  const sectionIndex = Math.floor(index / NOTES_PER_SECTION);
+  const slot = index % NOTES_PER_SECTION;
+  const col = slot % SECTION_COLUMNS;
+  const row = Math.floor(slot / SECTION_COLUMNS);
+  const sectionStart = BOARD_PADDING_X + sectionIndex * (SECTION_WIDTH + SECTION_GAP);
+  const cellW = SECTION_WIDTH / SECTION_COLUMNS;
+  const cellH = SECTION_HEIGHT / SECTION_ROWS;
   const seed = createSeed(`${note.id || note.created_at || index}-${index}-${totalNotes}`);
 
   const randomX = seededRandom(seed + 1);
@@ -41,19 +67,20 @@ export function generateBoardLayout(note, index, totalNotes, boardWidth = DEFAUL
   const randomLayer = seededRandom(seed + 5);
   const randomTilt = seededRandom(seed + 6);
 
-  const x = col * cellW + cellW * 0.02 + randomX * cellW * 0.56;
-  const y = row * cellH + cellH * 0.08 + randomY * cellH * 0.48 + 28;
+  const x = sectionStart + col * cellW + cellW * 0.06 + randomX * cellW * 0.28;
+  const y = BOARD_PADDING_Y + row * cellH + cellH * 0.08 + randomY * cellH * 0.24;
   const tiltDirection = randomRotate > 0.5 ? 1 : -1;
-  const rotation = tiltDirection * (10 + randomTilt * 14);
-  const scale = 0.92 + randomScale * 0.16;
-  const zIndex = row * 2 + Math.floor(randomLayer * 4) + 10;
+  const rotation = tiltDirection * (8 + randomTilt * 16);
+  const scale = 0.91 + randomScale * 0.15;
+  const zIndex = sectionIndex * 20 + row * 3 + Math.floor(randomLayer * 6) + 10;
 
   return {
-    x: clamp(x, 24, boardWidth - 260),
-    y: clamp(y, 28, boardHeight - 260),
+    x: clamp(x, sectionStart + 12, Math.min(sectionStart + SECTION_WIDTH - 280, boardWidth - 260)),
+    y: clamp(y, BOARD_PADDING_Y + 12, boardHeight - 290),
     rotation,
     scale,
     row,
+    sectionIndex,
     zIndex,
   };
 }

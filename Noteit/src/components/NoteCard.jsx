@@ -58,6 +58,7 @@ const NoteCard = forwardRef(function NoteCard(
     onStickerMove,
     onStickerDrop,
     interactive = false,
+    className = '',
     style,
   },
   ref
@@ -157,7 +158,7 @@ const NoteCard = forwardRef(function NoteCard(
   return (
     <MotionDiv
       ref={setRefs}
-      className={`note-card ${design.isBlank ? 'note-card--blank' : 'note-card--art'} ${design.contentClass} ${preview ? 'is-preview' : ''} ${interactive ? 'is-interactive' : ''} ${editable ? 'is-editable' : ''} ${board ? 'is-board' : ''}`}
+      className={`note-card ${design.isBlank ? 'note-card--blank' : 'note-card--art'} ${design.contentClass} ${preview ? 'is-preview' : ''} ${interactive ? 'is-interactive' : ''} ${editable ? 'is-editable' : ''} ${board ? 'is-board' : ''} ${className}`}
       style={cardStyle}
       onClick={onClick}
       onPointerMove={handlePointerMove}

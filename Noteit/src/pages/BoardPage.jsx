@@ -15,6 +15,7 @@ import {
 } from '../utils/boardPlacement';
 
 const BOARD_OVERRIDES_KEY = 'notie-board-overrides';
+const NEWSLETTER_KEY = 'notie-newsletter-email';
 const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
 function normalizeNote(note) {
@@ -65,6 +66,10 @@ function writeBoardOverrides(overrides) {
   window.localStorage.setItem(BOARD_OVERRIDES_KEY, JSON.stringify(overrides));
 }
 
+function isValidEmail(value) {
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(value || '').trim());
+}
+
 export default function BoardPage() {
   const [notes, setNotes] = useState(() => getBoardNotesWithFallback().map(normalizeNote));
   const [selectedNote, setSelectedNote] = useState(null);
@@ -75,6 +80,10 @@ export default function BoardPage() {
   const [noteOverrides, setNoteOverrides] = useState(() => readBoardOverrides());
   const [draggingNoteId, setDraggingNoteId] = useState(null);
   const [viewport, setViewport] = useState({ left: 0, right: 1400, width: 1024 });
+  const [newsletterEmail, setNewsletterEmail] = useState(
+    () => (typeof window === 'undefined' ? '' : window.localStorage.getItem(NEWSLETTER_KEY) || '')
+  );
+  const [newsletterState, setNewsletterState] = useState({ status: 'idle', message: '' });
   const boardRef = useRef(null);
   const surfaceRef = useRef(null);
   const dragState = useRef({ active: false, startX: 0, scrollLeft: 0 });
@@ -366,6 +375,54 @@ export default function BoardPage() {
     });
   }, [layouts, notes, viewport]);
 
+  const handleNewsletterSubmit = async (event) => {
+    event.preventDefault();
+
+    const email = newsletterEmail.trim().toLowerCase();
+    if (!isValidEmail(email)) {
+      setNewsletterState({
+        status: 'error',
+        message: 'Add a valid email so we can send the sweet updates to the right place.',
+      });
+      return;
+    }
+
+    setNewsletterState({ status: 'loading', message: '' });
+
+    if (!supabase) {
+      setNewsletterState({
+        status: 'error',
+        message: 'Newsletter signup is ready, but it still needs a backend connection before it can collect emails.',
+      });
+      return;
+    }
+
+    const { error: signupError } = await supabase.from('newsletter_signups').insert({
+      email,
+      source: 'board',
+    });
+
+    if (signupError) {
+      console.error('Newsletter signup error:', signupError.message);
+      setNewsletterState({
+        status: 'error',
+        message:
+          signupError.message?.toLowerCase().includes('newsletter_signups')
+            ? 'The signup note is live, but the newsletter table still needs to be created in Supabase.'
+            : getSupabaseIssueMessage(signupError),
+      });
+      return;
+    }
+
+    if (typeof window !== 'undefined') {
+      window.localStorage.setItem(NEWSLETTER_KEY, email);
+    }
+    setNewsletterState({
+      status: 'success',
+      message: "You're on the list. We'll keep you posted when something sweet drops.",
+    });
+  };
+
   return (
     <div className="app-bg app-bg--board">
       <main className="notie-shell notie-shell--board">
@@ -448,6 +505,46 @@ export default function BoardPage() {
                 </div>
               ) : null}
             </div>
+          </div>
+        </motion.section>
+
+        <motion.section
+          className="newsletter-note"
+          initial={{ opacity: 0, y: 18 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.42, ease: 'easeOut', delay: 0.12 }}
+        >
+          <div className="newsletter-note__paper">
+            <span className="newsletter-note__tape" aria-hidden="true" />
+            <span className="newsletter-note__eyebrow">A tiny extra note</span>
+            <h2>Want soft updates from Notie?</h2>
+            <p>
+              Leave your email if you&apos;d like to hear when new board themes, event versions,
+              or sweet little experiments arrive.
+            </p>
+
+            <form className="newsletter-note__form" onSubmit={handleNewsletterSubmit}>
+              <input
+                type="email"
+                inputMode="email"
+                autoComplete="email"
+                value={newsletterEmail}
+                onChange={(event) => setNewsletterEmail(event.target.value)}
+                placeholder="you@example.com"
+                aria-label="Email address"
+              />
+              <button
+                type="submit"
+                className="guided-button guided-button--primary"
+                disabled={newsletterState.status === 'loading'}
+              >
+                {newsletterState.status === 'loading' ? 'Joining...' : 'Join newsletter'}
+              </button>
+            </form>
+
+            <p className={`newsletter-note__status is-${newsletterState.status}`}>
+              {newsletterState.message || 'No spammy flood, just the good stuff when it is ready.'}
+            </p>
           </div>
         </motion.section>
       </main>

@@ -124,6 +124,25 @@ export default function WritePage() {
   const activeStep = steps[stepIndex];
   const stepDirection = stepIndex % 2 === 0 ? 1 : -1;
 
+  const previewPanel = (
+    <motion.div
+      className={`onboarding-phone__preview onboarding-phone__preview--${activeStep.id}`}
+      key={`preview-${activeStep.id}`}
+      initial={{ opacity: 0.72, scale: 0.97, y: 8 }}
+      animate={{ opacity: 1, scale: 1, y: 0 }}
+      transition={{ duration: 0.28, ease: 'easeOut' }}
+    >
+      <div className="onboarding-phone__preview-badge">Your note</div>
+      <NotePreview
+        note={draft}
+        exportRef={exportRef}
+        pulse={pulsePreview}
+        editable
+        onStickerMove={handleStickerMove}
+      />
+    </motion.div>
+  );
+
   const goNext = () => {
     if (!activeStep.ready) return;
     setStepIndex((current) => Math.min(current + 1, steps.length - 1));
@@ -231,197 +250,184 @@ export default function WritePage() {
             ))}
           </div>
 
-          <div className="write-layout__controls write-layout__controls--onboarding">
-            <div className="onboarding-progress" aria-label="Onboarding progress">
-              {steps.map((step, index) => (
-                <button
-                  key={step.id}
-                  type="button"
-                  className={`onboarding-progress__dot ${index === stepIndex ? 'is-active' : ''} ${index < stepIndex ? 'is-done' : ''}`}
-                  onClick={() => setStepIndex(index)}
-                  aria-label={`Go to ${step.title}`}
-                />
-              ))}
+          <div className="onboarding-mobile-shell">
+            <div className="onboarding-progress onboarding-progress--app" aria-label="Onboarding progress">
+              <div className="onboarding-progress__copy">
+                <span className="onboarding-progress__step">Step {stepIndex + 1} of {steps.length}</span>
+                <span className="onboarding-progress__name">{activeStep.title}</span>
+              </div>
+              <div className="onboarding-progress__dots">
+                {steps.map((step, index) => (
+                  <button
+                    key={step.id}
+                    type="button"
+                    className={`onboarding-progress__dot ${index === stepIndex ? 'is-active' : ''} ${index < stepIndex ? 'is-done' : ''}`}
+                    onClick={() => setStepIndex(index)}
+                    aria-label={`Go to ${step.title}`}
+                  />
+                ))}
+              </div>
             </div>
 
             <AnimatePresence mode="wait">
               <motion.section
                 key={activeStep.id}
-                className="onboarding-card"
+                className="onboarding-phone"
                 initial={{ opacity: 0, x: 38 * stepDirection, y: 16, scale: 0.98, rotate: 1.2 * stepDirection }}
-                animate={{ opacity: 1, y: 0, scale: 1 }}
+                animate={{ opacity: 1, y: 0, scale: 1, rotate: 0 }}
                 exit={{ opacity: 0, x: -28 * stepDirection, y: -10, scale: 0.99, rotate: -0.8 * stepDirection }}
                 transition={{ duration: 0.34, ease: [0.22, 1, 0.36, 1] }}
               >
-                <p className="onboarding-card__eyebrow">{activeStep.eyebrow}</p>
-                <h2 className="onboarding-card__title">{activeStep.title}</h2>
-                <p className="onboarding-card__subtitle">{activeStep.subtitle}</p>
+                <div className="onboarding-phone__status">
+                  <span className="onboarding-phone__camera" />
+                  <span className="onboarding-phone__speaker" />
+                </div>
 
-                {activeStep.id === 'write' ? (
-                  <div className="onboarding-card__body">
-                    <section className="onboarding-notepad">
-                      <span className="onboarding-notepad__tape" aria-hidden="true" />
-                      <label className="sr-only" htmlFor="message-input">Message</label>
-                      <textarea
-                        id="message-input"
-                        className="onboarding-notepad__textarea"
-                        maxLength={100}
-                        value={draft.message}
-                        onChange={(event) => updateDraft({ message: event.target.value.slice(0, 100) })}
-                        placeholder="What do you want to say today..."
-                        aria-label="Message"
-                      />
-                      <div className="onboarding-notepad__footer">
-                        <label className="onboarding-name" htmlFor="name-input">
-                          <span className="onboarding-name__label">Signed by</span>
-                          <input
-                            id="name-input"
-                            className="onboarding-name__input"
-                            maxLength={12}
-                            value={draft.name}
-                            onChange={(event) => updateDraft({ name: event.target.value.slice(0, 12) })}
-                            placeholder="Call me..."
-                            aria-label="Your Name"
+                <div className="onboarding-phone__screen">
+                  <div className="onboarding-card onboarding-card--app">
+                    <p className="onboarding-card__eyebrow">{activeStep.eyebrow}</p>
+                    <h2 className="onboarding-card__title">{activeStep.title}</h2>
+                    <p className="onboarding-card__subtitle">{activeStep.subtitle}</p>
+
+                    {activeStep.id === 'write' ? (
+                      <div className="onboarding-card__body">
+                        {previewPanel}
+                        <section className="onboarding-notepad">
+                          <span className="onboarding-notepad__tape" aria-hidden="true" />
+                          <label className="sr-only" htmlFor="message-input">Message</label>
+                          <textarea
+                            id="message-input"
+                            className="onboarding-notepad__textarea"
+                            maxLength={100}
+                            value={draft.message}
+                            onChange={(event) => updateDraft({ message: event.target.value.slice(0, 100) })}
+                            placeholder="What do you want to say today..."
+                            aria-label="Message"
                           />
-                        </label>
-                        <div className={`character-counter ${messageCount >= 84 ? 'is-warning' : ''}`}>
-                          {messageCount} / 100
+                          <div className="onboarding-notepad__footer">
+                            <label className="onboarding-name" htmlFor="name-input">
+                              <span className="onboarding-name__label">Signed by</span>
+                              <input
+                                id="name-input"
+                                className="onboarding-name__input"
+                                maxLength={12}
+                                value={draft.name}
+                                onChange={(event) => updateDraft({ name: event.target.value.slice(0, 12) })}
+                                placeholder="Call me..."
+                                aria-label="Your Name"
+                              />
+                            </label>
+                            <div className={`character-counter ${messageCount >= 84 ? 'is-warning' : ''}`}>
+                              {messageCount} / 100
+                            </div>
+                          </div>
+                        </section>
+                      </div>
+                    ) : null}
+
+                    {activeStep.id === 'style' ? (
+                      <div className="onboarding-card__body">
+                        {previewPanel}
+                        <StylePicker value={draft.designId} onChange={(designId) => updateDraft({ designId })} label="Choose a paper" />
+                        <ThemePicker value={draft.themeId} onChange={(themeId) => updateDraft({ themeId })} label="Choose a color" />
+                      </div>
+                    ) : null}
+
+                    {activeStep.id === 'decorate' ? (
+                      <div className="onboarding-card__body">
+                        {previewPanel}
+                        <PushpinPicker value={draft.pinColor} onChange={(pinColor) => updateDraft({ pinColor })} />
+                        <StickerTray value={draft.stickers} onToggle={handleToggleSticker} />
+                        <div className="onboarding-sticker-summary" aria-live="polite">
+                          {draft.stickers.length ? (
+                            draft.stickers.map((sticker, index) => (
+                              <motion.span
+                                key={`${sticker.stickerId}-${index}`}
+                                className="onboarding-sticker-summary__chip"
+                                initial={{ opacity: 0, scale: 0.6, rotate: -8 }}
+                                animate={{ opacity: 1, scale: 1, rotate: 0 }}
+                                transition={{ duration: 0.2, delay: index * 0.04 }}
+                              >
+                                {sticker.stickerId.replace(/-/g, ' ')}
+                              </motion.span>
+                            ))
+                          ) : (
+                            <span className="onboarding-sticker-summary__empty">No stickers yet</span>
+                          )}
+                        </div>
+                        <p className="onboarding-card__hint">
+                          {selectedStickerCount ? `${selectedStickerCount} sticker${selectedStickerCount > 1 ? 's' : ''} on your note.` : 'Tap a sticker to place it on the note.'}
+                        </p>
+                      </div>
+                    ) : null}
+
+                    {activeStep.id === 'finish' ? (
+                      <div className="onboarding-card__body onboarding-card__body--review">
+                        {previewPanel}
+                        <div className="onboarding-review">
+                          <div>
+                            <div className="onboarding-review__label">Mode</div>
+                            <div className="onboarding-review__value">{saveMode === 'cloud' ? 'Supabase cloud' : 'Local fallback'}</div>
+                          </div>
+                          <div>
+                            <div className="onboarding-review__label">Paper</div>
+                            <div className="onboarding-review__value">{draft.designId}</div>
+                          </div>
+                          <div>
+                            <div className="onboarding-review__label">Signed</div>
+                            <div className="onboarding-review__value">{displayName}</div>
+                          </div>
+                        </div>
+
+                        <div className="action-row action-row--stacked">
+                          <button
+                            type="button"
+                            className="secondary-button"
+                            onClick={handleExport}
+                            disabled={isExporting}
+                          >
+                            {isExporting ? 'Generating...' : 'Download PNG'}
+                          </button>
+                          <motion.button
+                            type="submit"
+                            className="primary-button"
+                            disabled={isSubmitting}
+                            whileHover={{ y: -2, boxShadow: '0 16px 28px rgba(120, 87, 47, 0.25)' }}
+                            whileTap={{ scale: 0.98 }}
+                          >
+                            {isSubmitting ? 'Pinning...' : 'Pin To Board'}
+                          </motion.button>
                         </div>
                       </div>
-                    </section>
-                  </div>
-                ) : null}
+                    ) : null}
 
-                {activeStep.id === 'style' ? (
-                  <div className="onboarding-card__body">
-                    <StylePicker value={draft.designId} onChange={(designId) => updateDraft({ designId })} label="Choose a paper" />
-                    <ThemePicker value={draft.themeId} onChange={(themeId) => updateDraft({ themeId })} label="Choose a color" />
-                  </div>
-                ) : null}
+                    {error ? <p className="form-error">{error}</p> : null}
 
-                {activeStep.id === 'decorate' ? (
-                  <div className="onboarding-card__body">
-                    <PushpinPicker value={draft.pinColor} onChange={(pinColor) => updateDraft({ pinColor })} />
-                    <StickerTray value={draft.stickers} onToggle={handleToggleSticker} />
-                    <div className="onboarding-sticker-summary" aria-live="polite">
-                      {draft.stickers.length ? (
-                        draft.stickers.map((sticker, index) => (
-                          <motion.span
-                            key={`${sticker.stickerId}-${index}`}
-                            className="onboarding-sticker-summary__chip"
-                            initial={{ opacity: 0, scale: 0.6, rotate: -8 }}
-                            animate={{ opacity: 1, scale: 1, rotate: 0 }}
-                            transition={{ duration: 0.2, delay: index * 0.04 }}
-                          >
-                            {sticker.stickerId.replace(/-/g, ' ')}
-                          </motion.span>
-                        ))
-                      ) : (
-                        <span className="onboarding-sticker-summary__empty">No stickers yet</span>
-                      )}
-                    </div>
-                    <p className="onboarding-card__hint">
-                      {selectedStickerCount ? `${selectedStickerCount} sticker${selectedStickerCount > 1 ? 's' : ''} on your note.` : 'Tap a sticker to place it on the note.'}
-                    </p>
-                  </div>
-                ) : null}
-
-                {activeStep.id === 'finish' ? (
-                  <div className="onboarding-card__body onboarding-card__body--review">
-                    <div className="onboarding-review">
-                      <div>
-                        <div className="onboarding-review__label">Mode</div>
-                        <div className="onboarding-review__value">{saveMode === 'cloud' ? 'Supabase cloud' : 'Local fallback'}</div>
-                      </div>
-                      <div>
-                        <div className="onboarding-review__label">Paper</div>
-                        <div className="onboarding-review__value">{draft.designId}</div>
-                      </div>
-                      <div>
-                        <div className="onboarding-review__label">Signed</div>
-                        <div className="onboarding-review__value">{displayName}</div>
-                      </div>
-                    </div>
-
-                    <div className="action-row action-row--stacked">
+                    <div className="onboarding-card__actions">
                       <button
                         type="button"
-                        className="secondary-button"
-                        onClick={handleExport}
-                        disabled={isExporting}
+                        className="ghost-button"
+                        onClick={goBack}
+                        disabled={stepIndex === 0}
                       >
-                        {isExporting ? 'Generating...' : 'Download PNG'}
+                        Back
                       </button>
-                      <motion.button
-                        type="submit"
-                        className="primary-button"
-                        disabled={isSubmitting}
-                        whileHover={{ y: -2, boxShadow: '0 16px 28px rgba(120, 87, 47, 0.25)' }}
-                        whileTap={{ scale: 0.98 }}
-                      >
-                        {isSubmitting ? 'Pinning...' : 'Pin To Board'}
-                      </motion.button>
+                      {stepIndex < steps.length - 1 ? (
+                        <motion.button
+                          type="button"
+                          className="primary-button"
+                          disabled={!activeStep.ready}
+                          onClick={goNext}
+                          whileTap={{ scale: 0.98 }}
+                        >
+                          Continue
+                        </motion.button>
+                      ) : null}
                     </div>
                   </div>
-                ) : null}
-
-                {error ? <p className="form-error">{error}</p> : null}
-
-                <div className="onboarding-card__actions">
-                  <button
-                    type="button"
-                    className="ghost-button"
-                    onClick={goBack}
-                    disabled={stepIndex === 0}
-                  >
-                    Back
-                  </button>
-                  {stepIndex < steps.length - 1 ? (
-                    <motion.button
-                      type="button"
-                      className="primary-button"
-                      disabled={!activeStep.ready}
-                      onClick={goNext}
-                      whileTap={{ scale: 0.98 }}
-                    >
-                      Continue
-                    </motion.button>
-                  ) : null}
                 </div>
               </motion.section>
             </AnimatePresence>
-          </div>
-
-          <div className="write-layout__preview write-layout__preview--onboarding">
-            <div className="onboarding-preview">
-              <motion.div
-                className="onboarding-preview__badge"
-                initial={{ opacity: 0, y: -8 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.35, delay: 0.1 }}
-              >
-                Live Preview
-              </motion.div>
-              <div className="onboarding-preview__copy">
-                <h3>Every tap updates the note instantly.</h3>
-                <p>Move the stickers, test the paper, then pin it when it feels right.</p>
-              </div>
-              <motion.div
-                className="onboarding-preview__stage"
-                key={activeStep.id}
-                initial={{ opacity: 0.72, scale: 0.97, y: 8 }}
-                animate={{ opacity: 1, scale: 1, y: 0 }}
-                transition={{ duration: 0.28, ease: 'easeOut' }}
-              >
-                <NotePreview
-                  note={draft}
-                  exportRef={exportRef}
-                  pulse={pulsePreview}
-                  editable
-                  onStickerMove={handleStickerMove}
-                />
-              </motion.div>
-            </div>
           </div>
         </motion.form>
       </main>

@@ -621,10 +621,11 @@ button:disabled {
 
 .write-layout--onboarding {
   position: relative;
-  grid-template-columns: minmax(0, 0.9fr) minmax(360px, 1.1fr);
-  gap: 28px;
-  padding: 22px;
+  grid-template-columns: 1fr;
+  gap: 20px;
+  padding: 24px 18px 30px;
   isolation: isolate;
+  justify-items: center;
 }
 
 .write-layout__controls--onboarding,
@@ -640,6 +641,14 @@ button:disabled {
   overflow: hidden;
   pointer-events: none;
   z-index: 0;
+}
+
+.onboarding-mobile-shell {
+  position: relative;
+  z-index: 1;
+  width: min(100%, 460px);
+  display: grid;
+  gap: 14px;
 }
 
 .onboarding-atmosphere__note {
@@ -703,6 +712,43 @@ button:disabled {
   width: fit-content;
 }
 
+.onboarding-progress--app {
+  width: 100%;
+  justify-content: space-between;
+  padding: 14px 16px;
+  gap: 14px;
+  border-radius: 24px;
+  background: rgba(255, 250, 243, 0.95);
+  box-shadow:
+    0 10px 24px rgba(115, 82, 45, 0.08),
+    inset 0 0 0 1px rgba(130, 96, 59, 0.08);
+}
+
+.onboarding-progress__copy {
+  display: grid;
+  gap: 4px;
+}
+
+.onboarding-progress__step {
+  color: #c9974a;
+  font-size: 0.68rem;
+  font-weight: 900;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+}
+
+.onboarding-progress__name {
+  color: #6d4929;
+  font-size: 0.92rem;
+  font-weight: 800;
+}
+
+.onboarding-progress__dots {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+}
+
 .onboarding-progress__dot {
   width: 12px;
   height: 12px;
@@ -730,6 +776,59 @@ button:disabled {
     radial-gradient(circle at top right, rgba(255, 255, 255, 0.9), transparent 30%),
     linear-gradient(180deg, rgba(255, 251, 245, 0.98), rgba(249, 243, 234, 0.96));
   box-shadow: 0 24px 50px rgba(115, 82, 45, 0.14);
+}
+
+.onboarding-phone {
+  position: relative;
+  width: min(100%, 460px);
+  padding: 12px;
+  border-radius: 38px;
+  background:
+    linear-gradient(180deg, rgba(75, 54, 40, 0.98), rgba(44, 31, 23, 0.98));
+  box-shadow:
+    0 32px 60px rgba(84, 57, 30, 0.18),
+    inset 0 1px 0 rgba(255,255,255,0.12);
+}
+
+.onboarding-phone__status {
+  position: relative;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 24px;
+}
+
+.onboarding-phone__camera {
+  position: absolute;
+  left: calc(50% - 34px);
+  width: 9px;
+  height: 9px;
+  border-radius: 999px;
+  background: rgba(18, 17, 19, 0.92);
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,0.06);
+}
+
+.onboarding-phone__speaker {
+  width: 58px;
+  height: 6px;
+  border-radius: 999px;
+  background: rgba(20, 18, 18, 0.86);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.05);
+}
+
+.onboarding-phone__screen {
+  padding: 4px 0 0;
+  border-radius: 30px;
+  overflow: hidden;
+  background:
+    radial-gradient(circle at top, rgba(255,255,255,0.38), transparent 26%),
+    linear-gradient(180deg, #f6eee3, #efe4d2);
+}
+
+.onboarding-card--app {
+  min-height: 760px;
+  border-radius: 30px;
+  box-shadow: none;
 }
 
 .onboarding-card::before {
@@ -787,6 +886,56 @@ button:disabled {
   margin: -2px 2px 0;
   color: #8b725a;
   font-size: 0.9rem;
+}
+
+.onboarding-phone__preview {
+  display: grid;
+  gap: 10px;
+  padding: 16px;
+  border-radius: 26px;
+  background:
+    linear-gradient(0deg, rgba(114, 78, 39, 0.09), rgba(114, 78, 39, 0.09)),
+    radial-gradient(circle at 2px 2px, rgba(111, 79, 37, 0.08) 1.5px, transparent 0),
+    linear-gradient(180deg, #d9b081, #bf8c58);
+  background-size: auto, 14px 14px, auto;
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,0.2),
+    inset 0 0 0 1px rgba(108, 75, 35, 0.12);
+}
+
+.onboarding-phone__preview-badge {
+  display: inline-flex;
+  align-items: center;
+  min-height: 28px;
+  width: fit-content;
+  padding: 0 12px;
+  border-radius: 999px;
+  background: rgba(255, 250, 243, 0.9);
+  color: #8f6b45;
+  font-size: 0.72rem;
+  font-weight: 900;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+
+.onboarding-phone__preview .preview-block {
+  gap: 0;
+}
+
+.onboarding-phone__preview .control-block__label {
+  display: none;
+}
+
+.onboarding-phone__preview .preview-stage {
+  min-height: 320px;
+  padding: 18px 10px;
+  border-radius: 22px;
+  background: rgba(255, 248, 237, 0.18);
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,0.14);
+}
+
+.onboarding-phone__preview--finish .preview-stage {
+  min-height: 360px;
 }
 
 .onboarding-sticker-summary {
@@ -927,64 +1076,6 @@ button:disabled {
   color: #5d3a1f;
   font-size: 0.98rem;
   font-weight: 800;
-}
-
-.onboarding-preview {
-  position: sticky;
-  top: 18px;
-  display: grid;
-  gap: 16px;
-  min-height: 100%;
-  padding: 24px 20px 20px;
-  border-radius: 34px;
-  background:
-    radial-gradient(circle at 16% 14%, rgba(255, 255, 255, 0.18), transparent 18%),
-    radial-gradient(circle at 84% 16%, rgba(255, 255, 255, 0.12), transparent 18%),
-    linear-gradient(180deg, rgba(124, 82, 45, 0.12), rgba(124, 82, 45, 0.16)),
-    linear-gradient(180deg, #d9b081, #bf8c58);
-  box-shadow: inset 0 1px 0 rgba(255,255,255,0.2), inset 0 0 0 1px rgba(111, 79, 37, 0.12);
-}
-
-.onboarding-preview__badge {
-  display: inline-flex;
-  align-items: center;
-  min-height: 32px;
-  width: fit-content;
-  padding: 0 14px;
-  border-radius: 999px;
-  background: rgba(255, 250, 243, 0.88);
-  color: #8f6b45;
-  font-size: 0.76rem;
-  font-weight: 900;
-  letter-spacing: 0.16em;
-  text-transform: uppercase;
-}
-
-.onboarding-preview__copy h3 {
-  margin: 0;
-  color: #fff9ef;
-  font-size: clamp(1.8rem, 4vw, 2.6rem);
-  line-height: 1;
-  font-family: var(--font-display);
-}
-
-.onboarding-preview__copy p {
-  margin: 10px 0 0;
-  color: rgba(255, 243, 227, 0.88);
-  max-width: 24rem;
-  line-height: 1.5;
-}
-
-.onboarding-preview__stage {
-  position: relative;
-}
-
-.onboarding-preview__stage .preview-block {
-  gap: 0;
-}
-
-.onboarding-preview__stage .control-block__label {
-  display: none;
 }
 
 .preview-block {
@@ -1456,27 +1547,12 @@ button:disabled {
   }
 
   .write-layout--onboarding {
-    grid-template-columns: 1fr;
-    gap: 18px;
+    gap: 16px;
     padding: 16px;
   }
 
   .onboarding-atmosphere {
     inset: 8px 8px 0;
-  }
-
-  .write-layout__preview--onboarding {
-    order: -1;
-  }
-
-  .onboarding-preview {
-    position: relative;
-    top: auto;
-    padding: 18px 16px 16px;
-  }
-
-  .onboarding-preview__copy h3 {
-    font-size: 2rem;
   }
 
   .onboarding-card {
@@ -1485,6 +1561,31 @@ button:disabled {
 
   .onboarding-card__title {
     font-size: 2rem;
+  }
+
+  .onboarding-phone {
+    width: 100%;
+    padding: 10px;
+    border-radius: 30px;
+  }
+
+  .onboarding-phone__screen,
+  .onboarding-card--app {
+    border-radius: 24px;
+  }
+
+  .onboarding-card--app {
+    min-height: auto;
+  }
+
+  .onboarding-progress--app {
+    align-items: start;
+    flex-direction: column;
+  }
+
+  .onboarding-progress__dots {
+    width: 100%;
+    justify-content: space-between;
   }
 
   .onboarding-card__actions {
@@ -1506,6 +1607,11 @@ button:disabled {
 
   .onboarding-sticker-summary {
     min-height: 0;
+  }
+
+  .onboarding-phone__preview .preview-stage,
+  .onboarding-phone__preview--finish .preview-stage {
+    min-height: 280px;
   }
 
   .occasion-hero {

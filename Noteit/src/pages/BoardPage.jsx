@@ -11,7 +11,6 @@ import { deserializeStickerEntries, getPushpinColor } from '../utils/stickers';
 import {
   generateBoardLayout,
   getBoardHeight,
-  getBoardSections,
   getBoardWidth,
 } from '../utils/boardPlacement';
 
@@ -118,7 +117,6 @@ export default function BoardPage() {
 
   const boardWidth = useMemo(() => getBoardWidth(notes.length || 1), [notes.length]);
   const boardHeight = useMemo(() => getBoardHeight(), []);
-  const boardSections = useMemo(() => getBoardSections(notes.length || 1), [notes.length]);
 
   const layouts = useMemo(() => {
     const total = notes.length || 1;
@@ -158,8 +156,21 @@ export default function BoardPage() {
     const handleResize = () => syncViewport();
     window.addEventListener('resize', handleResize);
 
+    const boardNode = boardRef.current;
+    const handleWheelScroll = (event) => {
+      if (!boardNode) return;
+      if (Math.abs(event.deltaY) <= Math.abs(event.deltaX)) return;
+
+      event.preventDefault();
+      boardNode.scrollLeft += event.deltaY;
+      syncViewport();
+    };
+
+    boardNode?.addEventListener('wheel', handleWheelScroll, { passive: false });
+
     return () => {
       window.removeEventListener('resize', handleResize);
+      boardNode?.removeEventListener('wheel', handleWheelScroll);
       if (scrollTimer.current) window.clearTimeout(scrollTimer.current);
     };
   }, [syncViewport]);
@@ -202,15 +213,6 @@ export default function BoardPage() {
 
   const stopBoardDragging = () => {
     dragState.current.active = false;
-  };
-
-  const handleWheel = (event) => {
-    if (!boardRef.current) return;
-    if (Math.abs(event.deltaY) <= Math.abs(event.deltaX)) return;
-
-    event.preventDefault();
-    boardRef.current.scrollLeft += event.deltaY;
-    syncViewport();
   };
 
   const handleScroll = () => {
@@ -257,6 +259,7 @@ export default function BoardPage() {
 
   const handleNotePointerDown = (event, note) => {
     event.stopPropagation();
+    event.preventDefault();
 
     if (!surfaceRef.current) return;
 
@@ -291,23 +294,25 @@ export default function BoardPage() {
   };
 
   const handleNotePointerMove = (event) => {
-    if (!noteDragState.current) return;
+    const dragSnapshot = noteDragState.current;
+    if (!dragSnapshot) return;
 
-    const deltaX = event.clientX - noteDragState.current.startX;
-    const deltaY = event.clientY - noteDragState.current.startY;
+    const deltaX = event.clientX - dragSnapshot.startX;
+    const deltaY = event.clientY - dragSnapshot.startY;
     const moved = Math.abs(deltaX) > 4 || Math.abs(deltaY) > 4;
 
     if (moved) {
-      noteDragState.current.moved = true;
+      dragSnapshot.moved = true;
     }
 
-    const nextX = clamp(noteDragState.current.originX + deltaX, 18, boardWidth - 280);
-    const nextY = clamp(noteDragState.current.originY + deltaY, 18, boardHeight - 280);
+    const nextX = clamp(dragSnapshot.originX + deltaX, 18, boardWidth - 280);
+    const nextY = clamp(dragSnapshot.originY + deltaY, 18, boardHeight - 280);
+    const { noteId } = dragSnapshot;
 
     setNoteOverrides((current) => ({
       ...current,
-      [noteDragState.current.noteId]: {
-        ...current[noteDragState.current.noteId],
+      [noteId]: {
+        ...current[noteId],
         x: nextX,
         y: nextY,
       },
@@ -389,7 +394,6 @@ export default function BoardPage() {
           <div
             ref={boardRef}
             className="board-scroll"
-            onWheel={handleWheel}
             onScroll={handleScroll}
             onPointerDown={handleBoardPointerDown}
             onPointerMove={handleBoardPointerMove}
@@ -405,21 +409,6 @@ export default function BoardPage() {
                 height: `${boardHeight}px`,
               }}
             >
-              {boardSections.map((section) => (
-                <div
-                  key={section.id}
-                  className="board-surface__section"
-                  style={{
-                    left: `${section.x}px`,
-                    width: `${section.width}px`,
-                  }}
-                >
-                  <div className="board-surface__section-label">
-                    Notes {section.index * 8 + 1}-{section.index * 8 + 8}
-                  </div>
-                </div>
-              ))}
-
               {visibleNotes.map((note, index) => {
                 const layout = layouts[note.id];
                 if (!layout) return null;

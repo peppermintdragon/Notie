@@ -102,7 +102,7 @@ function wrapMessageLines(ctx, text, maxWidth, hasCjk) {
 function getMessageLayout(ctx, message) {
   const hasCjk = containsCjk(message);
   const family = hasCjk
-    ? '"ZCOOL KuaiLe", "Microsoft JhengHei", "PingFang TC", sans-serif'
+    ? '"Noto Sans TC", "Microsoft JhengHei", "PingFang TC", sans-serif'
     : '"Caveat", "Segoe Print", cursive';
 
   const maxWidth = EXPORT_SIZE * 0.5;

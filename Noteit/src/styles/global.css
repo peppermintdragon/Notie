@@ -6,7 +6,7 @@
   font-weight: 500;
   --font-display: "Caveat", cursive;
   --font-handwriting: "Caveat", "Segoe Print", "Bradley Hand", "Comic Sans MS", cursive;
-  --font-cjk-handwriting: "ZCOOL KuaiLe", "Microsoft JhengHei", "PingFang TC", sans-serif;
+  --font-cjk-handwriting: "Noto Sans TC", "Microsoft JhengHei", "PingFang TC", sans-serif;
   --font-accent: "Syncopate", "Trebuchet MS", sans-serif;
   --font-occasion-display: "Cormorant Garamond", serif;
   --font-occasion-script: "Allura", cursive;
@@ -895,45 +895,6 @@ button:disabled {
     linear-gradient(180deg, #d7ad79, #c28f5a);
   background-size: auto, 14px 14px, auto;
   box-shadow: inset 0 3px 0 rgba(255, 255, 255, 0.12), inset 0 0 0 1px rgba(110, 74, 29, 0.12);
-}
-
-.board-surface__section {
-  position: absolute;
-  top: 28px;
-  bottom: 28px;
-  border-radius: 24px;
-  background:
-    linear-gradient(180deg, rgba(255, 242, 223, 0.06), rgba(118, 76, 32, 0.04)),
-    linear-gradient(180deg, rgba(255,255,255,0.06), rgba(255,255,255,0));
-  box-shadow:
-    inset 0 0 0 1px rgba(121, 78, 33, 0.12),
-    inset 0 22px 0 rgba(255,255,255,0.04);
-  pointer-events: none;
-}
-
-.board-surface__section::after {
-  content: "";
-  position: absolute;
-  inset: 18px;
-  border-radius: 18px;
-  border: 1px dashed rgba(255, 240, 217, 0.18);
-}
-
-.board-surface__section-label {
-  position: absolute;
-  left: 20px;
-  top: 18px;
-  display: inline-flex;
-  align-items: center;
-  min-height: 28px;
-  padding: 0 12px;
-  border-radius: 999px;
-  background: rgba(93, 57, 20, 0.22);
-  color: rgba(255, 245, 230, 0.9);
-  font-size: 0.72rem;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  font-family: var(--font-accent);
 }
 
 .board-note {

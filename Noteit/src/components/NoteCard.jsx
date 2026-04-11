@@ -56,6 +56,7 @@ const NoteCard = forwardRef(function NoteCard(
     editable = false,
     onClick,
     onStickerMove,
+    onStickerDrop,
     interactive = false,
     style,
   },
@@ -137,6 +138,22 @@ const NoteCard = forwardRef(function NoteCard(
     dragState.current = null;
   };
 
+  const handleExternalStickerDrop = (event) => {
+    if (!editable || !localRef.current || !onStickerDrop) return;
+
+    const stickerId = event.dataTransfer?.getData('text/notie-sticker');
+    if (!stickerId) return;
+
+    event.preventDefault();
+    event.stopPropagation();
+
+    const bounds = localRef.current.getBoundingClientRect();
+    const x = clamp(((event.clientX - bounds.left) / bounds.width) * 100, 8, 86);
+    const y = clamp(((event.clientY - bounds.top) / bounds.height) * 100, 10, 88);
+
+    onStickerDrop(stickerId, { x, y });
+  };
+
   return (
     <MotionDiv
       ref={setRefs}
@@ -146,6 +163,8 @@ const NoteCard = forwardRef(function NoteCard(
       onPointerMove={handlePointerMove}
       onPointerUp={stopStickerDrag}
       onPointerCancel={stopStickerDrag}
+      onDragOver={editable ? (event) => event.preventDefault() : undefined}
+      onDrop={editable ? handleExternalStickerDrop : undefined}
       initial={preview ? { opacity: 0.94, scale: 0.98, y: 6 } : false}
       animate={preview ? { opacity: 1, scale: 1, y: 0 } : undefined}
       transition={preview ? { type: 'spring', stiffness: 220, damping: 18 } : undefined}

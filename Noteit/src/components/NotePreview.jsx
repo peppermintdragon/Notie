@@ -1,7 +1,7 @@
 import { AnimatePresence, motion } from 'framer-motion';
 import NoteCard from './NoteCard';
 
-export default function NotePreview({ note, exportRef, pulse, editable = false, onStickerMove }) {
+export default function NotePreview({ note, exportRef, pulse, editable = false, onStickerMove, onStickerDrop }) {
   const animationKey = `${note.designId}-${note.themeId}-${note.pinColor}`;
 
   return (
@@ -21,6 +21,7 @@ export default function NotePreview({ note, exportRef, pulse, editable = false, 
             preview
             editable={editable}
             onStickerMove={onStickerMove}
+            onStickerDrop={onStickerDrop}
             note={{
               ...note,
               id: 'preview',

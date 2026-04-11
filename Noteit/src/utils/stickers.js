@@ -65,9 +65,27 @@ function makeStickerInstance(stickerId, index = 0) {
   };
 }
 
+function makeStickerInstanceAt(stickerId, x, y, index = 0) {
+  const slot = defaultStickerSlots[index % defaultStickerSlots.length];
+
+  return {
+    id: `placed-${Date.now()}-${index}`,
+    stickerId,
+    x: clamp(Number(x ?? slot.x), 6, 86),
+    y: clamp(Number(y ?? slot.y), 8, 84),
+    scale: slot.scale,
+    rotation: slot.rotation,
+  };
+}
+
 export function addStickerInstance(stickers, stickerId) {
   const nextIndex = Array.isArray(stickers) ? stickers.length : 0;
   return [...normalizeStickerEntries(stickers), makeStickerInstance(stickerId, nextIndex)];
+}
+
+export function addStickerInstanceAt(stickers, stickerId, x, y) {
+  const nextIndex = Array.isArray(stickers) ? stickers.length : 0;
+  return [...normalizeStickerEntries(stickers), makeStickerInstanceAt(stickerId, x, y, nextIndex)];
 }
 
 export function updateStickerEntry(stickers, stickerId, patch) {

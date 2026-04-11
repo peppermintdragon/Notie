@@ -258,8 +258,9 @@ export default function WritePage() {
         design_id: draft.designId,
       }}
       style={{
-        width: 'min(82vw, 520px)',
-        minHeight: '340px',
+        width: 'min(76vw, 460px)',
+        aspectRatio: '1 / 1',
+        minHeight: 'unset',
       }}
       className={extraClass}
     />
@@ -283,26 +284,28 @@ export default function WritePage() {
             exit={{ opacity: 0, y: -12 }}
             transition={{ duration: 0.36, ease: [0.22, 1, 0.36, 1] }}
           >
-            <div className="guided-hero-note">
-              <span className="guided-hero-note__tape guided-hero-note__tape--left" />
-              <span className="guided-hero-note__tape guided-hero-note__tape--right" />
-              <div className="guided-hero-note__title">Notie</div>
-              <div className="guided-hero-note__smile">:)</div>
-            </div>
+            <div className="guided-step__inner guided-step__inner--intro">
+              <div className="guided-hero-note">
+                <span className="guided-hero-note__tape guided-hero-note__tape--left" />
+                <span className="guided-hero-note__tape guided-hero-note__tape--right" />
+                <div className="guided-hero-note__title">Notie</div>
+                <div className="guided-hero-note__smile">:)</div>
+              </div>
 
-            <div className="guided-hero-copy">
-              <h1>Write the first spark.</h1>
-              <p>Write a memo pad or sticky note. Make a special memory.</p>
-              <p>Start with a thought, a tiny confession, or a sweet little line.</p>
-            </div>
+              <div className="guided-hero-copy">
+                <h1>Write the first spark.</h1>
+                <p>Write a memo pad or sticky note. Make a special memory.</p>
+                <p>Start with a thought, a tiny confession, or a sweet little line.</p>
+              </div>
 
-            <div className="guided-hero-actions">
-              <button type="button" className="guided-button guided-button--primary" onClick={goToNextStep}>
-                Let&apos;s Start!
-              </button>
-              <button type="button" className="guided-link" onClick={() => navigate('/board')}>
-                See public board
-              </button>
+              <div className="guided-hero-actions">
+                <button type="button" className="guided-button guided-button--primary" onClick={goToNextStep}>
+                  Let&apos;s Start!
+                </button>
+                <button type="button" className="guided-link" onClick={() => navigate('/board')}>
+                  See public board
+                </button>
+              </div>
             </div>
           </motion.section>
         ) : (

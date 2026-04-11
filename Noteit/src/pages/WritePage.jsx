@@ -6,6 +6,7 @@ import { exportNotePng } from '../utils/exportNotePng';
 import { getBalancedPlacement } from '../utils/boardPlacement';
 import { supabase } from '../lib/supabase';
 import { appendLocalNote, readLocalNotes } from '../utils/localNotes';
+import { noteDesignMap } from '../utils/noteDesigns';
 import { getSupabaseIssueMessage } from '../utils/supabaseStatus';
 import {
   addStickerInstance,
@@ -32,6 +33,13 @@ const paperChoices = [
   { id: 'floral', label: 'Floral', designId: 'cute-blush', themeId: 'rosewater', swatchClass: 'is-floral' },
   { id: 'scallop', label: 'Scallop', designId: 'cute-garden', themeId: 'sage-mist', swatchClass: 'is-scallop' },
   { id: 'kraft', label: 'Kraft', designId: 'cute-smile', themeId: 'champagne', swatchClass: 'is-kraft' },
+  { id: 'paper-1', label: 'Paper 1', designId: 'paper-note-1', themeId: 'cream', swatchClass: 'has-art' },
+  { id: 'paper-2', label: 'Paper 2', designId: 'paper-note-2', themeId: 'cream', swatchClass: 'has-art' },
+  { id: 'paper-3', label: 'Paper 3', designId: 'paper-note-3', themeId: 'cream', swatchClass: 'has-art' },
+  { id: 'paper-4', label: 'Paper 4', designId: 'paper-note-4', themeId: 'cream', swatchClass: 'has-art' },
+  { id: 'paper-5', label: 'Paper 5', designId: 'paper-note-5', themeId: 'cream', swatchClass: 'has-art' },
+  { id: 'paper-6', label: 'Paper 6', designId: 'paper-note-6', themeId: 'cream', swatchClass: 'has-art' },
+  { id: 'paper-7', label: 'Paper 7', designId: 'paper-note-7', themeId: 'cream', swatchClass: 'has-art' },
 ];
 
 const visiblePinChoices = pushpinOptions.filter((pin) => pin.id !== 'none').slice(0, 5);
@@ -382,6 +390,11 @@ export default function WritePage() {
                         className={`guided-paper-swatch ${paper.swatchClass} ${currentPaperIndex === paperChoices.findIndex((item) => item.id === paper.id) ? 'is-active' : ''}`}
                         onClick={() => selectPaper(paper)}
                         aria-label={`Choose ${paper.label} paper`}
+                        style={
+                          noteDesignMap[paper.designId]?.asset
+                            ? { backgroundImage: `url("${noteDesignMap[paper.designId].asset}")` }
+                            : undefined
+                        }
                       >
                         <span>{paper.label}</span>
                       </button>

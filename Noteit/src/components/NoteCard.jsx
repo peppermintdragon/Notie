@@ -2,6 +2,7 @@ import { forwardRef, useRef } from 'react';
 import { motion } from 'framer-motion';
 import { themeMap } from '../utils/colorThemes';
 import { noteDesignMap, noteDesigns } from '../utils/noteDesigns';
+import { getNoteMessageStyle } from '../utils/noteTypography';
 import { getPushpinColor, normalizeStickerEntries, pushpinMap, stickerMap } from '../utils/stickers';
 
 const MotionDiv = motion.div;
@@ -12,29 +13,6 @@ function clamp(value, min, max) {
 
 function getSeed(value) {
   return String(value || 'note').split('').reduce((total, char) => total + char.charCodeAt(0), 0);
-}
-
-function containsCjk(text) {
-  return /[\u3400-\u9FFF\uF900-\uFAFF]/.test(text);
-}
-
-function getMessageStyle(message, preview) {
-  const length = message.trim().length;
-  const hasCjk = containsCjk(message);
-  const base = hasCjk
-    ? (preview ? 1.18 : 1.06)
-    : (preview ? 1.52 : 1.4);
-  const fontFamily = hasCjk
-    ? 'var(--font-cjk-handwriting)'
-    : 'var(--font-handwriting)';
-
-  if (length <= 8) return { fontSize: `${base + 0.4}rem`, lineHeight: 1.02, fontFamily };
-  if (length <= 14) return { fontSize: `${base + 0.18}rem`, lineHeight: 1.06, fontFamily };
-  if (length <= 20) return { fontSize: `${base}rem`, lineHeight: 1.08, fontFamily };
-  if (length <= 32) return { fontSize: `${base - 0.12}rem`, lineHeight: 1.12, fontFamily };
-  if (length <= 48) return { fontSize: `${base - 0.22}rem`, lineHeight: 1.16, fontFamily };
-  if (length <= 72) return { fontSize: `${base - 0.34}rem`, lineHeight: hasCjk ? 1.2 : 1.18, fontFamily };
-  return { fontSize: `${base - 0.46}rem`, lineHeight: hasCjk ? 1.24 : 1.2, fontFamily };
 }
 
 function getHandwritingStyle(note, preview) {
@@ -72,6 +50,7 @@ const NoteCard = forwardRef(function NoteCard(
   const pin = pinColorId ? pushpinMap[pinColorId] : null;
   const message = note.message?.trim() || 'Write a little note...';
   const displayName = note.name?.trim() || 'Anonymous';
+  const noteSize = preview ? 460 : design.boardWidth;
 
   const cardStyle = {
     '--note-surface': theme.surface,
@@ -89,9 +68,17 @@ const NoteCard = forwardRef(function NoteCard(
   };
 
   const messageStyle = {
-    ...getMessageStyle(message, preview),
+    ...getNoteMessageStyle({
+      message,
+      stickers,
+      preview,
+      board,
+      noteSize,
+    }),
     ...getHandwritingStyle(note, preview),
   };
+
+  const showSparkle = message.trim().length <= 15 && stickers.length === 0;
 
   const setRefs = (node) => {
     localRef.current = node;
@@ -203,6 +190,7 @@ const NoteCard = forwardRef(function NoteCard(
         </div>
 
         <div className="note-card__copy">
+          {showSparkle ? <span className="note-card__sparkle" aria-hidden="true">✦</span> : null}
           <div className="note-card__message" style={messageStyle}>
             {message}
           </div>

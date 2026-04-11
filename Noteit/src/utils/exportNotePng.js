@@ -1,5 +1,6 @@
 import { themeMap } from './colorThemes';
 import { noteDesignMap } from './noteDesigns';
+import { containsCjk, getNoteFontSize } from './noteTypography';
 import {
   getPushpinColor,
   normalizeStickerEntries,
@@ -38,10 +39,6 @@ async function ensureCaveatFont() {
   }
 
   await caveatReady;
-}
-
-function containsCjk(text) {
-  return /[\u3400-\u9FFF\uF900-\uFAFF]/.test(text);
 }
 
 function clamp(value, min, max) {
@@ -99,26 +96,27 @@ function wrapMessageLines(ctx, text, maxWidth, hasCjk) {
   return lines;
 }
 
-function getMessageLayout(ctx, message) {
+function getMessageLayout(ctx, message, stickers) {
   const hasCjk = containsCjk(message);
   const family = hasCjk
     ? '"Noto Sans TC", "Microsoft JhengHei", "PingFang TC", sans-serif'
     : '"Caveat", "Segoe Print", cursive';
 
-  const maxWidth = EXPORT_SIZE * 0.5;
-  const maxHeight = EXPORT_SIZE * 0.36;
-  const minFontSize = hasCjk ? 26 : 30;
-  let fontSize = hasCjk ? 72 : 82;
+  const requestedFontSize = getNoteFontSize(message, stickers);
+  const maxWidth = EXPORT_SIZE * 0.56;
+  const maxHeight = EXPORT_SIZE * 0.34;
+  const minFontSize = hasCjk ? 24 : 26;
+  let fontSize = hasCjk ? Math.max(requestedFontSize * 2.2, 30) : Math.max(requestedFontSize * 2.45, 32);
   let lines = [];
   let lineHeight = 1.1;
 
   while (fontSize >= minFontSize) {
-    lineHeight = hasCjk ? 1.18 : 1.08;
-    ctx.font = `700 ${fontSize}px ${family}`;
+    lineHeight = hasCjk ? 1.26 : 1.14;
+    ctx.font = `600 ${fontSize}px ${family}`;
     lines = wrapMessageLines(ctx, message, maxWidth, hasCjk);
     const totalHeight = lines.length * fontSize * lineHeight;
 
-    if (lines.length <= 6 && totalHeight <= maxHeight) {
+    if (lines.length <= 7 && totalHeight <= maxHeight) {
       return {
         hasCjk,
         family,
@@ -129,10 +127,10 @@ function getMessageLayout(ctx, message) {
       };
     }
 
-    fontSize -= hasCjk ? 3 : 4;
+    fontSize -= hasCjk ? 2 : 3;
   }
 
-  ctx.font = `700 ${minFontSize}px ${family}`;
+  ctx.font = `600 ${minFontSize}px ${family}`;
   return {
     hasCjk,
     family,
@@ -239,15 +237,16 @@ function drawPushpin(ctx, pin) {
   ctx.fill();
 }
 
-function drawMessage(ctx, message) {
-  const layout = getMessageLayout(ctx, message);
+function drawMessage(ctx, message, stickers) {
+  const layout = getMessageLayout(ctx, message, stickers);
   const baseX = EXPORT_SIZE / 2;
-  const startY = 310;
+  const totalHeight = layout.lines.length * layout.fontSize * layout.lineHeight;
+  const startY = 332 - totalHeight / 2 + layout.fontSize / 2;
 
   ctx.fillStyle = '#4c2331';
   ctx.textAlign = layout.hasCjk ? 'left' : 'center';
   ctx.textBaseline = 'middle';
-  ctx.font = `700 ${layout.fontSize}px ${layout.family}`;
+  ctx.font = `600 ${layout.fontSize}px ${layout.family}`;
 
   layout.lines.forEach((line, index) => {
     const y = startY + index * layout.fontSize * layout.lineHeight;
@@ -263,6 +262,18 @@ function drawName(ctx, name) {
   ctx.textBaseline = 'middle';
   ctx.font = '700 26px "Syncopate", "Trebuchet MS", sans-serif';
   ctx.fillText(name.toUpperCase(), EXPORT_SIZE / 2, 622, 420);
+  ctx.restore();
+}
+
+function drawSparkle(ctx, stickers, message) {
+  if ((stickers?.length || 0) > 0 || message.trim().length > 15) return;
+
+  ctx.save();
+  ctx.fillStyle = 'rgba(201, 151, 74, 0.34)';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.font = '600 34px "Lato", sans-serif';
+  ctx.fillText('✦', 618, 192);
   ctx.restore();
 }
 
@@ -353,7 +364,8 @@ export async function exportNotePng(note, noteId = 'note') {
   }
 
   drawPushpin(ctx, normalized.pin);
-  drawMessage(ctx, normalized.message);
+  drawSparkle(ctx, normalized.stickers, normalized.message);
+  drawMessage(ctx, normalized.message, normalized.stickers);
   drawName(ctx, normalized.name);
   await drawStickers(ctx, normalized.stickers);
 

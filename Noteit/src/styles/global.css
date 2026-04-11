@@ -391,6 +391,11 @@
   font-family: var(--font-ui);
   font-size: 0.68rem;
   font-weight: 700;
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: cover;
+  overflow: hidden;
+  position: relative;
 }
 
 .guided-paper-swatch.is-active {
@@ -433,6 +438,22 @@
 
 .guided-paper-swatch.is-kraft {
   background: #f5edd0;
+}
+
+.guided-paper-swatch.has-art::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.04), rgba(255, 255, 255, 0.18));
+}
+
+.guided-paper-swatch.has-art span {
+  position: relative;
+  z-index: 1;
+  padding: 3px 8px;
+  border-radius: 999px;
+  background: rgba(255, 251, 245, 0.82);
+  box-shadow: 0 3px 10px rgba(107, 66, 38, 0.08);
 }
 
 .guided-subchoice {
@@ -1970,6 +1991,16 @@ button:disabled {
   min-height: 100%;
 }
 
+.note-card__sparkle {
+  position: absolute;
+  top: 14%;
+  right: 15%;
+  color: rgba(201, 151, 74, 0.34);
+  font-family: var(--font-ui);
+  font-size: 1rem;
+  line-height: 1;
+}
+
 .note-card__message {
   display: block;
   max-width: 82%;
@@ -1978,8 +2009,12 @@ button:disabled {
   color: #31101f;
   text-shadow: 0 1px 0 rgba(255, 255, 255, 0.25);
   font-family: var(--font-handwriting);
-  font-weight: 700;
+  font-weight: 600;
   word-break: break-word;
+  white-space: pre-wrap;
+  text-align: center;
+  padding: 0 8px;
+  transition: font-size 0.2s ease;
 }
 
 .note-card__footer {

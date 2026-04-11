@@ -97,6 +97,7 @@ function getStepDirection(index) {
 export default function WritePage() {
   const navigate = useNavigate();
   const exportRef = useRef(null);
+  const paperTouchStartX = useRef(0);
   const [draft, setDraft] = useState(defaultDraft);
   const [stepIndex, setStepIndex] = useState(0);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -144,6 +145,21 @@ export default function WritePage() {
     const nextPaper =
       paperChoices[(currentPaperIndex + direction + paperChoices.length) % paperChoices.length];
     selectPaper(nextPaper);
+  };
+
+  const handlePaperTouchStart = (event) => {
+    paperTouchStartX.current = event.touches[0]?.clientX || 0;
+  };
+
+  const handlePaperTouchEnd = (event) => {
+    const endX = event.changedTouches[0]?.clientX || 0;
+    const deltaX = endX - paperTouchStartX.current;
+
+    if (deltaX <= -50) {
+      cyclePaper(1);
+    } else if (deltaX >= 50) {
+      cyclePaper(-1);
+    }
   };
 
   const handleStickerMove = (stickerId, patch) => {
@@ -376,7 +392,13 @@ export default function WritePage() {
                     <button type="button" className="guided-carousel__arrow" onClick={() => cyclePaper(-1)} aria-label="Previous paper">
                       ‹
                     </button>
-                    <div className="guided-carousel__stage">{renderNote()}</div>
+                    <div
+                      className="guided-carousel__stage"
+                      onTouchStart={handlePaperTouchStart}
+                      onTouchEnd={handlePaperTouchEnd}
+                    >
+                      {renderNote()}
+                    </div>
                     <button type="button" className="guided-carousel__arrow" onClick={() => cyclePaper(1)} aria-label="Next paper">
                       ›
                     </button>

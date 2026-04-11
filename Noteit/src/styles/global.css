@@ -1971,15 +1971,7 @@ button:disabled {
   padding: 26px 24px 20px;
   border: 1px solid color-mix(in srgb, var(--note-border) 72%, white 28%);
   border-radius: 10px;
-  background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.12), rgba(255, 255, 255, 0.04)),
-    repeating-linear-gradient(
-      to bottom,
-      transparent 0,
-      transparent 24px,
-      color-mix(in srgb, var(--note-border) 32%, white 68%) 24px,
-      color-mix(in srgb, var(--note-border) 32%, white 68%) 25px
-    );
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.14), rgba(255, 255, 255, 0.03));
 }
 
 .note-card__copy {

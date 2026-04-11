@@ -173,15 +173,6 @@ function drawBlankPaper(ctx, theme) {
   ctx.clip();
   ctx.fillStyle = 'rgba(255,255,255,0.18)';
   ctx.fillRect(innerX, innerY, innerWidth, innerHeight);
-
-  ctx.strokeStyle = 'rgba(114, 102, 90, 0.22)';
-  ctx.lineWidth = 2;
-  for (let y = innerY + 104; y < innerY + innerHeight - 24; y += 60) {
-    ctx.beginPath();
-    ctx.moveTo(innerX + 54, y);
-    ctx.lineTo(innerX + innerWidth - 54, y);
-    ctx.stroke();
-  }
   ctx.restore();
 }
 

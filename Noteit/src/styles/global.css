@@ -2041,6 +2041,11 @@ button:disabled {
   pointer-events: none;
 }
 
+.note-sticker-wrap {
+  position: absolute;
+  z-index: 4;
+}
+
 .note-sticker {
   position: absolute;
   display: inline-grid;
@@ -2051,6 +2056,10 @@ button:disabled {
   background: transparent;
   border-radius: 16px;
   pointer-events: auto;
+}
+
+.note-sticker.is-selected {
+  filter: drop-shadow(0 6px 14px rgba(46, 24, 10, 0.18));
 }
 
 .note-sticker.is-draggable {
@@ -2067,6 +2076,74 @@ button:disabled {
   height: 100%;
   object-fit: contain;
   filter: drop-shadow(0 8px 12px rgba(46, 24, 10, 0.16));
+}
+
+.sticker-toolbar {
+  position: absolute;
+  left: 0;
+  top: -46px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 10px;
+  border-radius: 999px;
+  background: rgba(45, 32, 19, 0.84);
+  box-shadow: 0 10px 18px rgba(27, 17, 9, 0.18);
+  backdrop-filter: blur(6px);
+  transform: translateX(-50%);
+  pointer-events: auto;
+  animation: toolbarPop 0.2s cubic-bezier(0.34, 1.5, 0.64, 1);
+  z-index: 6;
+}
+
+.sticker-toolbar button {
+  border: 0;
+  background: transparent;
+  color: #fff;
+  min-width: 22px;
+  min-height: 22px;
+  padding: 2px 4px;
+  border-radius: 6px;
+  font-family: var(--font-ui);
+  font-size: 0.92rem;
+  line-height: 1;
+}
+
+.sticker-toolbar button:hover {
+  background: rgba(255, 255, 255, 0.14);
+}
+
+.sticker-toolbar__remove {
+  color: #ffb2b2;
+}
+
+.sticker-toolbar__dots {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.sticker-toolbar__dots span {
+  width: 5px;
+  height: 5px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.28);
+}
+
+.sticker-toolbar__dots span.is-active {
+  background: #fff5d8;
+}
+
+@keyframes toolbarPop {
+  from {
+    opacity: 0;
+    transform: translateX(-50%) scale(0.82) translateY(4px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateX(-50%) scale(1) translateY(0);
+  }
 }
 
 .content-garden .note-card__copy {

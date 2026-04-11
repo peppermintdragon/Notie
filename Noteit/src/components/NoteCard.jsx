@@ -1,4 +1,4 @@
-import { forwardRef, useRef } from 'react';
+import { forwardRef, useEffect, useRef, useState } from 'react';
 import { motion } from 'framer-motion';
 import { themeMap } from '../utils/colorThemes';
 import { noteDesignMap, noteDesigns } from '../utils/noteDesigns';
@@ -34,6 +34,7 @@ const NoteCard = forwardRef(function NoteCard(
     editable = false,
     onClick,
     onStickerMove,
+    onStickerRemove,
     onStickerDrop,
     interactive = false,
     className = '',
@@ -43,6 +44,7 @@ const NoteCard = forwardRef(function NoteCard(
 ) {
   const localRef = useRef(null);
   const dragState = useRef(null);
+  const [selectedStickerId, setSelectedStickerId] = useState(null);
   const theme = themeMap[note.theme_id || note.themeId] || themeMap.cream;
   const design = noteDesignMap[note.design_id || note.designId] || noteDesigns[0];
   const stickers = normalizeStickerEntries(note.stickers || []);
@@ -80,6 +82,25 @@ const NoteCard = forwardRef(function NoteCard(
 
   const showSparkle = message.trim().length <= 15 && stickers.length === 0;
 
+  useEffect(() => {
+    if (!selectedStickerId) return undefined;
+
+    const handlePointerDownOutside = (event) => {
+      if (!localRef.current?.contains(event.target)) {
+        setSelectedStickerId(null);
+      }
+    };
+
+    document.addEventListener('pointerdown', handlePointerDownOutside);
+    return () => document.removeEventListener('pointerdown', handlePointerDownOutside);
+  }, [selectedStickerId]);
+
+  useEffect(() => {
+    if (!stickers.some((sticker) => sticker.id === selectedStickerId)) {
+      setSelectedStickerId(null);
+    }
+  }, [stickers, selectedStickerId]);
+
   const setRefs = (node) => {
     localRef.current = node;
 
@@ -102,6 +123,7 @@ const NoteCard = forwardRef(function NoteCard(
       originX: sticker.x,
       originY: sticker.y,
       bounds: localRef.current.getBoundingClientRect(),
+      moved: false,
     };
     event.currentTarget.setPointerCapture?.(event.pointerId);
   };
@@ -116,6 +138,14 @@ const NoteCard = forwardRef(function NoteCard(
       dragState.current.originY +
       ((event.clientY - dragState.current.startY) / dragState.current.bounds.height) * 100;
 
+    if (
+      Math.abs(event.clientX - dragState.current.startX) > 3 ||
+      Math.abs(event.clientY - dragState.current.startY) > 3
+    ) {
+      dragState.current.moved = true;
+      setSelectedStickerId(dragState.current.stickerId);
+    }
+
     onStickerMove(dragState.current.stickerId, {
       x: clamp(nextX, 8, 86),
       y: clamp(nextY, 10, 88),
@@ -124,6 +154,31 @@ const NoteCard = forwardRef(function NoteCard(
 
   const stopStickerDrag = () => {
     dragState.current = null;
+  };
+
+  const handleStickerSelect = (event, stickerId) => {
+    event.stopPropagation();
+
+    if (dragState.current?.stickerId === stickerId && dragState.current.moved) {
+      return;
+    }
+
+    setSelectedStickerId((current) => (current === stickerId ? null : stickerId));
+  };
+
+  const handleStickerResize = (event, sticker, delta) => {
+    event.stopPropagation();
+    if (!onStickerMove) return;
+
+    onStickerMove(sticker.id, {
+      scale: clamp(Number(sticker.scale ?? 1) + delta, 0.35, 1.2),
+    });
+  };
+
+  const handleStickerRemove = (event, stickerId) => {
+    event.stopPropagation();
+    setSelectedStickerId(null);
+    onStickerRemove?.(stickerId);
   };
 
   const handleExternalStickerDrop = (event) => {
@@ -161,30 +216,88 @@ const NoteCard = forwardRef(function NoteCard(
       layout
     >
       {pin ? <span className="note-card__pin" aria-hidden="true" /> : null}
-      <div className="note-card__inner">
+      <div
+        className="note-card__inner"
+        onClick={
+          editable
+            ? (event) => {
+                event.stopPropagation();
+                setSelectedStickerId(null);
+              }
+            : undefined
+        }
+      >
         <div className="note-stickers">
           {stickers.map((sticker) => {
             const assetSticker = stickerMap[sticker.stickerId];
             if (!assetSticker) return null;
+            const isSelected = selectedStickerId === sticker.id;
+            const sizeLevel = Math.max(1, Math.min(5, Math.round((sticker.scale / 1.2) * 5)));
 
             return (
-              <button
+              <div
                 key={sticker.id}
-                type="button"
-                className={`note-sticker note-sticker--image ${editable ? 'is-draggable' : ''}`}
+                className="note-sticker-wrap"
                 style={{
                   left: `${sticker.x}%`,
                   top: `${sticker.y}%`,
-                  transform: `translate(-50%, -50%) rotate(${sticker.rotation}deg) scale(${sticker.scale})`,
                 }}
-                onPointerDown={(event) => handleStickerPointerDown(event, sticker)}
-                onPointerMove={handlePointerMove}
-                onPointerUp={stopStickerDrag}
-                onPointerCancel={stopStickerDrag}
-                aria-label={editable ? `Move ${assetSticker.label}` : assetSticker.label}
               >
-                <img src={assetSticker.src} alt="" className="note-sticker__image" />
-              </button>
+                {editable && isSelected ? (
+                  <div
+                    className="sticker-toolbar"
+                    onClick={(event) => event.stopPropagation()}
+                    onPointerDown={(event) => event.stopPropagation()}
+                  >
+                    <button
+                      type="button"
+                      onClick={(event) => handleStickerResize(event, sticker, -0.1)}
+                      aria-label={`Shrink ${assetSticker.label}`}
+                    >
+                      -
+                    </button>
+                    <div className="sticker-toolbar__dots" aria-hidden="true">
+                      {Array.from({ length: 5 }, (_, index) => (
+                        <span
+                          key={`${sticker.id}-dot-${index}`}
+                          className={index < sizeLevel ? 'is-active' : ''}
+                        />
+                      ))}
+                    </div>
+                    <button
+                      type="button"
+                      onClick={(event) => handleStickerResize(event, sticker, 0.1)}
+                      aria-label={`Grow ${assetSticker.label}`}
+                    >
+                      +
+                    </button>
+                    <button
+                      type="button"
+                      className="sticker-toolbar__remove"
+                      onClick={(event) => handleStickerRemove(event, sticker.id)}
+                      aria-label={`Remove ${assetSticker.label}`}
+                    >
+                      x
+                    </button>
+                  </div>
+                ) : null}
+
+                <button
+                  type="button"
+                  className={`note-sticker note-sticker--image ${editable ? 'is-draggable' : ''} ${isSelected ? 'is-selected' : ''}`}
+                  style={{
+                    transform: `translate(-50%, -50%) rotate(${sticker.rotation}deg) scale(${sticker.scale})`,
+                  }}
+                  onClick={(event) => handleStickerSelect(event, sticker.id)}
+                  onPointerDown={(event) => handleStickerPointerDown(event, sticker)}
+                  onPointerMove={handlePointerMove}
+                  onPointerUp={stopStickerDrag}
+                  onPointerCancel={stopStickerDrag}
+                  aria-label={editable ? `Move ${assetSticker.label}` : assetSticker.label}
+                >
+                  <img src={assetSticker.src} alt="" className="note-sticker__image" />
+                </button>
+              </div>
             );
           })}
         </div>

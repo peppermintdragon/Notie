@@ -180,6 +180,12 @@ export default function WritePage() {
     });
   };
 
+  const handleStickerRemove = (stickerId) => {
+    updateDraft({
+      stickers: normalizeStickerEntries(draft.stickers).filter((sticker) => sticker.id !== stickerId),
+    });
+  };
+
   const saveNote = async () => {
     const message = draft.message.trim();
     const name = draft.name.trim() || 'Anonymous';
@@ -272,6 +278,7 @@ export default function WritePage() {
       preview
       editable={activeStep.id === 'stickers'}
       onStickerMove={handleStickerMove}
+      onStickerRemove={handleStickerRemove}
       onStickerDrop={handleStickerDrop}
       note={{
         ...draft,

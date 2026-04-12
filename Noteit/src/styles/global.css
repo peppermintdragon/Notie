@@ -2634,8 +2634,21 @@ button:disabled {
     font-size: 0.88rem;
   }
 
+  .board-scroll {
+    height: calc(100dvh - 154px);
+    padding: 18px 10px 28px;
+  }
+
   .board-surface {
-    min-height: 708px;
+    min-height: 860px;
+  }
+
+  .board-note {
+    transform: rotate(var(--board-tilt, 0deg)) scale(calc(var(--board-scale, 1) * 1.22));
+  }
+
+  .board-note:hover {
+    transform: rotate(var(--board-tilt, 0deg)) translateY(-6px) scale(calc(var(--board-scale, 1) * 1.24));
   }
 
   .newsletter-note {

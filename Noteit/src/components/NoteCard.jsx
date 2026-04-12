@@ -26,6 +26,21 @@ function getHandwritingStyle(note, preview) {
   };
 }
 
+function getPaperEdgeStyle(note, board) {
+  if (!board) return {};
+
+  const seed = getSeed(note.id || note.message || note.name);
+  const topLeft = 12 + (seed % 7);
+  const topRight = 18 + (seed % 9);
+  const bottomRight = 14 + (seed % 8);
+  const bottomLeft = 20 + (seed % 6);
+
+  return {
+    '--note-radius': `${topLeft}px ${topRight}px ${bottomRight}px ${bottomLeft}px`,
+    '--note-inner-radius': `${Math.max(8, topLeft - 2)}px ${Math.max(10, topRight - 3)}px ${Math.max(9, bottomRight - 2)}px ${Math.max(12, bottomLeft - 3)}px`,
+  };
+}
+
 const NoteCard = forwardRef(function NoteCard(
   {
     note,
@@ -66,6 +81,7 @@ const NoteCard = forwardRef(function NoteCard(
     '--pin-shadow': pin?.shadow || 'transparent',
     width: preview ? 'min(76vw, 300px)' : `${design.boardWidth}px`,
     minHeight: preview ? '310px' : `${design.boardHeight}px`,
+    ...getPaperEdgeStyle(note, board),
     ...style,
   };
 

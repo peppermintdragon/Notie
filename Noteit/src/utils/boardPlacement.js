@@ -3,9 +3,17 @@ const BOARD_PADDING_Y = 44;
 const SECTION_GAP = 74;
 const SECTION_WIDTH = 1320;
 const SECTION_HEIGHT = 620;
-const SECTION_ROWS = 2;
-const SECTION_COLUMNS = 4;
-const NOTES_PER_SECTION = SECTION_ROWS * SECTION_COLUMNS;
+const NOTES_PER_SECTION = 8;
+const MESSY_ANCHORS = [
+  { x: 0.1, y: 0.08 },
+  { x: 0.32, y: 0.04 },
+  { x: 0.57, y: 0.11 },
+  { x: 0.76, y: 0.08 },
+  { x: 0.04, y: 0.52 },
+  { x: 0.29, y: 0.58 },
+  { x: 0.53, y: 0.5 },
+  { x: 0.79, y: 0.57 },
+];
 
 function createSeed(value) {
   return String(value || 'note')
@@ -53,12 +61,9 @@ export function getBoardSections(noteCount) {
 export function generateBoardLayout(note, index, totalNotes, boardWidth = getBoardWidth(totalNotes), boardHeight = getBoardHeight()) {
   const sectionIndex = Math.floor(index / NOTES_PER_SECTION);
   const slot = index % NOTES_PER_SECTION;
-  const col = slot % SECTION_COLUMNS;
-  const row = Math.floor(slot / SECTION_COLUMNS);
   const sectionStart = BOARD_PADDING_X + sectionIndex * (SECTION_WIDTH + SECTION_GAP);
-  const cellW = SECTION_WIDTH / SECTION_COLUMNS;
-  const cellH = SECTION_HEIGHT / SECTION_ROWS;
   const seed = createSeed(`${note.id || note.created_at || index}-${index}-${totalNotes}`);
+  const anchor = MESSY_ANCHORS[slot % MESSY_ANCHORS.length];
 
   const randomX = seededRandom(seed + 1);
   const randomY = seededRandom(seed + 2);
@@ -66,20 +71,21 @@ export function generateBoardLayout(note, index, totalNotes, boardWidth = getBoa
   const randomScale = seededRandom(seed + 4);
   const randomLayer = seededRandom(seed + 5);
   const randomTilt = seededRandom(seed + 6);
+  const randomOverlap = seededRandom(seed + 7);
 
-  const x = sectionStart + col * cellW + cellW * 0.06 + randomX * cellW * 0.28;
-  const y = BOARD_PADDING_Y + row * cellH + cellH * 0.08 + randomY * cellH * 0.24;
+  const x = sectionStart + SECTION_WIDTH * anchor.x + (randomX - 0.5) * 130;
+  const y = BOARD_PADDING_Y + SECTION_HEIGHT * anchor.y + (randomY - 0.5) * 92;
   const tiltDirection = randomRotate > 0.5 ? 1 : -1;
-  const rotation = tiltDirection * (8 + randomTilt * 16);
-  const scale = 0.91 + randomScale * 0.15;
-  const zIndex = sectionIndex * 20 + row * 3 + Math.floor(randomLayer * 6) + 10;
+  const rotation = tiltDirection * (0.6 + randomTilt * 4.4);
+  const scale = 0.94 + randomScale * 0.12;
+  const zIndex = sectionIndex * 30 + Math.floor(randomLayer * 10) + slot + 10;
+  const overlapNudge = (randomOverlap - 0.5) * 24;
 
   return {
-    x: clamp(x, sectionStart + 12, Math.min(sectionStart + SECTION_WIDTH - 280, boardWidth - 260)),
-    y: clamp(y, BOARD_PADDING_Y + 12, boardHeight - 290),
+    x: clamp(x + overlapNudge, sectionStart + 8, Math.min(sectionStart + SECTION_WIDTH - 250, boardWidth - 240)),
+    y: clamp(y - overlapNudge * 0.25, BOARD_PADDING_Y + 8, boardHeight - 260),
     rotation,
     scale,
-    row,
     sectionIndex,
     zIndex,
   };

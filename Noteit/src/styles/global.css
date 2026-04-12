@@ -2511,14 +2511,12 @@ button:disabled {
   }
 
   .guided-carousel {
-    grid-template-columns: 48px minmax(0, 1fr) 48px;
-    gap: 12px;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 0;
   }
 
   .guided-carousel__arrow {
-    width: 44px;
-    height: 44px;
-    font-size: 1.5rem;
+    display: none;
   }
 
   .guided-paper-swatch {
@@ -2528,7 +2526,7 @@ button:disabled {
 
   .guided-note-stage__note,
   .guided-finish__note {
-    width: min(82vw, 360px);
+    width: min(420px, calc(100vw - 48px));
   }
 
   .guided-write-note {

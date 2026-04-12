@@ -289,7 +289,7 @@ export default function WritePage() {
         design_id: draft.designId,
       }}
       style={{
-        width: 'min(76vw, 460px)',
+        width: 'min(420px, calc(100vw - 48px))',
         aspectRatio: '1 / 1',
         minHeight: 'unset',
       }}

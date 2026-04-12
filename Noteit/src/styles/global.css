@@ -2638,20 +2638,28 @@ button:disabled {
   }
 
   .board-scroll {
-    height: calc(100dvh - 154px);
-    padding: 18px 10px 28px;
+    height: auto;
+    max-height: none;
+    overflow-x: hidden;
+    overflow-y: auto;
+    padding: 18px 12px 28px;
   }
 
   .board-surface {
+    width: 100%;
     min-height: 860px;
   }
 
   .board-note {
-    transform: rotate(var(--board-tilt, 0deg)) scale(calc(var(--board-scale, 1) * 1.22));
+    left: 50% !important;
+    width: min(78vw, 280px);
+    max-width: calc(100vw - 48px);
+    transform-origin: center top;
+    transform: translateX(-50%) rotate(var(--board-tilt, 0deg)) scale(calc(var(--board-scale, 1) * 1.08));
   }
 
   .board-note:hover {
-    transform: rotate(var(--board-tilt, 0deg)) translateY(-6px) scale(calc(var(--board-scale, 1) * 1.24));
+    transform: translateX(-50%) rotate(var(--board-tilt, 0deg)) translateY(-6px) scale(calc(var(--board-scale, 1) * 1.1));
   }
 
   .newsletter-note {

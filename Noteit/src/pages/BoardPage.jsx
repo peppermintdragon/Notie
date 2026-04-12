@@ -70,6 +70,24 @@ function isValidEmail(value) {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(value || '').trim());
 }
 
+function getMobileBoardLayout(note, index, totalNotes) {
+  const seed = String(note.id || note.created_at || index)
+    .split('')
+    .reduce((total, char, charIndex) => total + char.charCodeAt(0) * (charIndex + 1), 0);
+  const randomA = Math.abs(Math.sin(seed + index)) % 1;
+  const randomB = Math.abs(Math.cos(seed + totalNotes)) % 1;
+  const randomC = Math.abs(Math.sin(seed * 1.73)) % 1;
+
+  return {
+    x: 18 + (randomA - 0.5) * 18,
+    y: 24 + index * 278 + (randomB - 0.5) * 24,
+    rotation: (randomC - 0.5) * 10,
+    scale: 1,
+    sectionIndex: Math.floor(index / 8),
+    zIndex: 20 + index,
+  };
+}
+
 export default function BoardPage() {
   const [notes, setNotes] = useState(() => getBoardNotesWithFallback().map(normalizeNote));
   const [selectedNote, setSelectedNote] = useState(null);
@@ -80,6 +98,9 @@ export default function BoardPage() {
   const [noteOverrides, setNoteOverrides] = useState(() => readBoardOverrides());
   const [draggingNoteId, setDraggingNoteId] = useState(null);
   const [viewport, setViewport] = useState({ left: 0, right: 1400, width: 1024 });
+  const [isMobileBoard, setIsMobileBoard] = useState(
+    () => (typeof window !== 'undefined' ? window.innerWidth <= 640 : false)
+  );
   const [newsletterEmail, setNewsletterEmail] = useState(
     () => (typeof window === 'undefined' ? '' : window.localStorage.getItem(NEWSLETTER_KEY) || '')
   );
@@ -93,6 +114,18 @@ export default function BoardPage() {
   useEffect(() => {
     writeBoardOverrides(noteOverrides);
   }, [noteOverrides]);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return undefined;
+
+    const handleResizeMode = () => {
+      setIsMobileBoard(window.innerWidth <= 640);
+    };
+
+    handleResizeMode();
+    window.addEventListener('resize', handleResizeMode);
+    return () => window.removeEventListener('resize', handleResizeMode);
+  }, []);
 
   useEffect(() => {
     async function loadNotes() {
@@ -124,15 +157,23 @@ export default function BoardPage() {
     loadNotes();
   }, []);
 
-  const boardWidth = useMemo(() => getBoardWidth(notes.length || 1), [notes.length]);
-  const boardHeight = useMemo(() => getBoardHeight(), []);
+  const boardWidth = useMemo(
+    () => (isMobileBoard ? 320 : getBoardWidth(notes.length || 1)),
+    [isMobileBoard, notes.length]
+  );
+  const boardHeight = useMemo(
+    () => (isMobileBoard ? Math.max(900, notes.length * 278 + 220) : getBoardHeight()),
+    [isMobileBoard, notes.length]
+  );
 
   const layouts = useMemo(() => {
     const total = notes.length || 1;
     const baseLayouts = Object.fromEntries(
       notes.map((note, index) => [
         note.id,
-        generateBoardLayout(note, index, total, boardWidth, boardHeight),
+        isMobileBoard
+          ? getMobileBoardLayout(note, index, total)
+          : generateBoardLayout(note, index, total, boardWidth, boardHeight),
       ])
     );
 
@@ -145,19 +186,19 @@ export default function BoardPage() {
         },
       ])
     );
-  }, [boardHeight, boardWidth, noteOverrides, notes]);
+  }, [boardHeight, boardWidth, isMobileBoard, noteOverrides, notes]);
 
   const syncViewport = useCallback(() => {
     if (!boardRef.current) return;
 
-    const nextLeft = boardRef.current.scrollLeft;
+    const nextLeft = isMobileBoard ? boardRef.current.scrollTop : boardRef.current.scrollLeft;
     const nextWidth = boardRef.current.clientWidth || window.innerWidth;
     setViewport({
       left: nextLeft,
       right: nextLeft + nextWidth,
       width: nextWidth,
     });
-  }, []);
+  }, [isMobileBoard]);
 
   useEffect(() => {
     syncViewport();
@@ -168,6 +209,7 @@ export default function BoardPage() {
     const boardNode = boardRef.current;
     const handleWheelScroll = (event) => {
       if (!boardNode) return;
+      if (isMobileBoard) return;
       if (Math.abs(event.deltaY) <= Math.abs(event.deltaX)) return;
 
       event.preventDefault();
@@ -182,7 +224,7 @@ export default function BoardPage() {
       boardNode?.removeEventListener('wheel', handleWheelScroll);
       if (scrollTimer.current) window.clearTimeout(scrollTimer.current);
     };
-  }, [syncViewport]);
+  }, [isMobileBoard, syncViewport]);
 
   useRealtimeNotes((incomingNote, eventType) => {
     const nextNote = normalizeNote(incomingNote);
@@ -202,6 +244,7 @@ export default function BoardPage() {
   }, status === 'cloud');
 
   const handleBoardPointerDown = (event) => {
+    if (isMobileBoard) return;
     if (!boardRef.current || noteDragState.current) return;
     if (event.target !== event.currentTarget && !String(event.target.className).includes('board-surface')) return;
 
@@ -213,6 +256,7 @@ export default function BoardPage() {
   };
 
   const handleBoardPointerMove = (event) => {
+    if (isMobileBoard) return;
     if (!dragState.current.active || !boardRef.current) return;
 
     const deltaX = event.clientX - dragState.current.startX;
@@ -367,13 +411,14 @@ export default function BoardPage() {
   };
 
   const visibleNotes = useMemo(() => {
+    if (isMobileBoard) return notes;
     const buffer = viewport.width || 640;
     return notes.filter((note) => {
       const layout = layouts[note.id];
       if (!layout) return false;
       return layout.x > viewport.left - buffer && layout.x < viewport.right + buffer;
     });
-  }, [layouts, notes, viewport]);
+  }, [isMobileBoard, layouts, notes, viewport]);
 
   const handleNewsletterSubmit = async (event) => {
     event.preventDefault();
@@ -444,7 +489,9 @@ export default function BoardPage() {
             </div>
           </div>
 
-          <div className="board-scroll-hint">&larr; Drag left and right to explore &rarr;</div>
+          <div className="board-scroll-hint">
+            {isMobileBoard ? '↓ Scroll down to explore more notes ↓' : '\u2190 Drag left and right to explore \u2192'}
+          </div>
           {error ? <p className="board-alert">{error}</p> : null}
           {loading ? <div className="board-status">Loading board...</div> : null}
 
@@ -461,7 +508,7 @@ export default function BoardPage() {
               ref={surfaceRef}
               className="board-surface"
               style={{
-                width: `${boardWidth}px`,
+                width: isMobileBoard ? '100%' : `${boardWidth}px`,
                 minHeight: `${boardHeight}px`,
                 height: `${boardHeight}px`,
               }}

@@ -259,7 +259,9 @@ body {
 
 .guided-write-note {
   width: min(82vw, 520px);
+  max-width: 100%;
   min-height: 360px;
+  margin-inline: auto;
   padding: 28px 26px 22px;
   border-radius: 6px 18px 18px 18px;
   background:
@@ -2515,6 +2517,12 @@ button:disabled {
     gap: 0;
   }
 
+  .guided-carousel__stage {
+    width: min(420px, calc(100vw - 48px));
+    max-width: 100%;
+    margin-inline: auto;
+  }
+
   .guided-carousel__arrow {
     display: none;
   }
@@ -2530,7 +2538,7 @@ button:disabled {
   }
 
   .guided-write-note {
-    width: min(480px, calc(100vw - 40px));
+    width: min(420px, calc(100vw - 48px));
     min-height: 340px;
   }
 

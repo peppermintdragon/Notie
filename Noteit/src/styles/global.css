@@ -2494,13 +2494,19 @@ button:disabled {
 }
 
 @media (max-width: 640px) {
+  .guided-onboarding {
+    padding: 0 12px;
+  }
+
   .guided-step__inner {
     gap: 18px;
-    padding: 78px 20px 92px;
+    width: min(100%, 420px);
+    padding: 78px 0 92px;
   }
 
   .guided-step__inner--intro {
-    padding-top: 42px;
+    width: min(100%, 420px);
+    padding: 42px 0 72px;
     gap: 22px;
   }
 
@@ -2524,7 +2530,7 @@ button:disabled {
   }
 
   .guided-carousel__stage {
-    width: min(420px, calc(100vw - 48px));
+    width: min(420px, calc(100vw - 24px));
     max-width: 100%;
     margin-inline: auto;
   }
@@ -2540,11 +2546,11 @@ button:disabled {
 
   .guided-note-stage__note,
   .guided-finish__note {
-    width: min(420px, calc(100vw - 48px));
+    width: min(420px, calc(100vw - 24px));
   }
 
   .guided-write-note {
-    width: min(420px, calc(100vw - 48px));
+    width: min(420px, calc(100vw - 24px));
     min-height: 340px;
   }
 

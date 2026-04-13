@@ -214,13 +214,14 @@ export default function PrivateBoardPage() {
           </div>
         </motion.header>
 
-        <section className="private-layout">
+        <section className="private-corkboard">
           <motion.aside
-            className="private-calendar"
-            initial={{ opacity: 0, x: -12 }}
-            animate={{ opacity: 1, x: 0 }}
+            className="private-calendar private-pin private-pin--calendar"
+            initial={{ opacity: 0, x: -12, rotate: -3 }}
+            animate={{ opacity: 1, x: 0, rotate: -2.4 }}
             transition={{ duration: 0.4, ease: 'easeOut' }}
           >
+            <span className="private-pin__thumb private-pin__thumb--red" aria-hidden="true" />
             <div className="private-calendar__header">
               <button
                 className="icon-button"
@@ -238,21 +239,6 @@ export default function PrivateBoardPage() {
                 aria-label="Next month"
               >
                 {'>'}
-              </button>
-            </div>
-
-            <div className="private-checkin">
-              <div>
-                <p className="private-board__eyebrow">Daily check-in</p>
-                <h3>{totalCheckins} / {UNLOCK_DAY_TARGET} days</h3>
-                <p>Check in gently. After day 10, a tiny hidden palette opens up.</p>
-              </div>
-              <button
-                className={`private-checkin__button ${checkinsByDate[selectedDateKey] ? 'is-active' : ''}`}
-                type="button"
-                onClick={toggleCheckin}
-              >
-                {checkinsByDate[selectedDateKey] ? 'Checked in' : 'Check in today'}
               </button>
             </div>
 
@@ -291,6 +277,27 @@ export default function PrivateBoardPage() {
             </div>
           </motion.aside>
 
+          <motion.div
+            className="private-checkin private-pin private-pin--checkin"
+            initial={{ opacity: 0, y: 10, rotate: 2.8 }}
+            animate={{ opacity: 1, y: 0, rotate: 2.2 }}
+            transition={{ duration: 0.4, ease: 'easeOut', delay: 0.04 }}
+          >
+            <span className="private-pin__thumb private-pin__thumb--teal" aria-hidden="true" />
+            <div>
+              <p className="private-board__eyebrow">Daily check-in</p>
+              <h3>{totalCheckins} / {UNLOCK_DAY_TARGET} days</h3>
+              <p>Check in gently. After day 10, a tiny hidden palette opens up.</p>
+            </div>
+            <button
+              className={`private-checkin__button ${checkinsByDate[selectedDateKey] ? 'is-active' : ''}`}
+              type="button"
+              onClick={toggleCheckin}
+            >
+              {checkinsByDate[selectedDateKey] ? 'Checked in' : 'Check in today'}
+            </button>
+          </motion.div>
+
           <motion.section
             className="private-board"
             initial={{ opacity: 0, x: 12 }}
@@ -314,12 +321,13 @@ export default function PrivateBoardPage() {
             <AnimatePresence>
               {hasUnlockedSurprise ? (
                 <motion.div
-                  className="private-unlock"
-                  initial={{ opacity: 0, y: 14, scale: 0.97 }}
-                  animate={{ opacity: 1, y: 0, scale: 1 }}
+                  className="private-unlock private-pin private-pin--unlock"
+                  initial={{ opacity: 0, y: 14, scale: 0.97, rotate: -1.6 }}
+                  animate={{ opacity: 1, y: 0, scale: 1, rotate: -1 }}
                   exit={{ opacity: 0, y: -8, scale: 0.98 }}
                   transition={{ type: 'spring', stiffness: 220, damping: 18 }}
                 >
+                  <span className="private-pin__thumb private-pin__thumb--gold" aria-hidden="true" />
                   <span className="private-unlock__spark">*</span>
                   <div>
                     <p className="private-board__eyebrow">Unlocked</p>
@@ -398,7 +406,8 @@ export default function PrivateBoardPage() {
               )}
             </div>
 
-            <div className="private-editor">
+            <div className="private-editor private-pin private-pin--editor">
+              <span className="private-pin__thumb private-pin__thumb--green" aria-hidden="true" />
               <div className="private-editor__header">
                 <div>
                   <p className="private-board__eyebrow">Editing</p>

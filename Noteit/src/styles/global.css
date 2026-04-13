@@ -683,8 +683,12 @@ button:disabled {
 }
 
 .private-shell {
-  padding: 24px;
-  background: rgba(255, 251, 245, 0.92);
+  padding: 22px;
+  background: transparent;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+  overflow: visible;
 }
 
 .private-header {
@@ -692,7 +696,7 @@ button:disabled {
   align-items: end;
   justify-content: space-between;
   gap: 20px;
-  padding: 6px 4px 24px;
+  padding: 8px 6px 18px;
 }
 
 .private-header__copy {
@@ -716,8 +720,8 @@ button:disabled {
   margin: 0;
   color: #6b4226;
   font-family: var(--font-display);
-  font-size: clamp(2.4rem, 6vw, 3.6rem);
-  line-height: 0.98;
+  font-size: clamp(2.6rem, 6vw, 4rem);
+  line-height: 0.96;
 }
 
 .private-header p,
@@ -736,38 +740,102 @@ button:disabled {
   justify-content: flex-end;
 }
 
-.private-layout {
+.private-corkboard {
   display: grid;
-  grid-template-columns: minmax(290px, 340px) minmax(0, 1fr);
+  grid-template-columns: minmax(290px, 348px) minmax(0, 1fr);
+  grid-template-areas:
+    "calendar board"
+    "checkin board";
   gap: 22px;
+  padding: 28px;
+  border-radius: 36px;
+  background:
+    linear-gradient(0deg, rgba(114, 78, 39, 0.1), rgba(114, 78, 39, 0.1)),
+    radial-gradient(circle at 2px 2px, rgba(111, 79, 37, 0.09) 1.6px, transparent 0),
+    linear-gradient(180deg, #d5ad79, #bf8c57);
+  background-size: auto, 14px 14px, auto;
+  box-shadow:
+    inset 0 2px 0 rgba(255, 255, 255, 0.18),
+    inset 0 0 0 1px rgba(109, 74, 32, 0.14),
+    0 28px 56px rgba(104, 69, 33, 0.16);
+}
+
+.private-pin {
+  position: relative;
+  overflow: visible;
+}
+
+.private-pin__thumb {
+  position: absolute;
+  left: 50%;
+  top: -14px;
+  z-index: 2;
+  width: 20px;
+  height: 20px;
+  border-radius: 999px;
+  box-shadow:
+    inset 0 -2px 0 rgba(0, 0, 0, 0.16),
+    0 12px 18px rgba(68, 40, 14, 0.18);
+  transform: translateX(-50%);
+}
+
+.private-pin__thumb::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: calc(100% - 1px);
+  width: 2px;
+  height: 22px;
+  border-radius: 999px;
+  background: rgba(86, 65, 49, 0.58);
+  transform: translateX(-50%);
+}
+
+.private-pin__thumb--red {
+  background: radial-gradient(circle at 35% 35%, #ffd8d0, transparent 40%), #c8594f;
+}
+
+.private-pin__thumb--teal {
+  background: radial-gradient(circle at 35% 35%, #dff9f2, transparent 40%), #73a49b;
+}
+
+.private-pin__thumb--gold {
+  background: radial-gradient(circle at 35% 35%, #fff1c8, transparent 40%), #cf9d45;
+}
+
+.private-pin__thumb--green {
+  background: radial-gradient(circle at 35% 35%, #e6f7d2, transparent 40%), #88a967;
 }
 
 .private-calendar,
-.private-board,
-.private-placeholder {
-  border-radius: 28px;
-  background: rgba(255, 253, 249, 0.86);
+.private-checkin,
+.private-unlock,
+.private-editor {
+  background: linear-gradient(180deg, rgba(255, 252, 246, 0.97), rgba(249, 242, 232, 0.95));
   box-shadow:
-    0 20px 50px rgba(131, 97, 61, 0.1),
-    inset 0 0 0 1px rgba(185, 144, 98, 0.1);
+    0 22px 34px rgba(88, 56, 24, 0.12),
+    inset 0 0 0 1px rgba(177, 138, 103, 0.12);
 }
 
 .private-calendar {
-  padding: 20px;
+  grid-area: calendar;
+  align-self: start;
+  padding: 24px 20px 20px;
+  border-radius: 20px 20px 26px 24px;
   display: grid;
   gap: 16px;
   align-content: start;
+  transform: rotate(-1.7deg);
 }
 
 .private-checkin {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
+  grid-area: checkin;
+  align-self: start;
+  display: grid;
   gap: 16px;
-  padding: 16px 18px;
-  border-radius: 22px;
-  background: linear-gradient(180deg, rgba(255, 248, 238, 0.98), rgba(248, 239, 228, 0.9));
-  box-shadow: inset 0 0 0 1px rgba(185, 144, 98, 0.12);
+  padding: 20px 18px 18px;
+  border-radius: 24px 19px 21px 25px;
+  transform: rotate(1.35deg);
 }
 
 .private-checkin h3,
@@ -775,8 +843,8 @@ button:disabled {
   margin: 0;
   color: #6b4226;
   font-family: var(--font-display);
-  font-size: 1.8rem;
-  line-height: 1;
+  font-size: 1.7rem;
+  line-height: 0.98;
 }
 
 .private-checkin p,
@@ -784,7 +852,7 @@ button:disabled {
   margin: 4px 0 0;
   color: #8d6b49;
   font-family: var(--font-ui);
-  line-height: 1.5;
+  line-height: 1.55;
 }
 
 .private-checkin__button {
@@ -792,6 +860,7 @@ button:disabled {
   min-height: 48px;
   padding: 0 18px;
   border-radius: 999px;
+  justify-self: start;
   background: rgba(255, 255, 255, 0.88);
   color: #7a5a3c;
   font-family: var(--font-ui);
@@ -817,7 +886,7 @@ button:disabled {
   margin: 0;
   color: #6b4226;
   font-family: var(--font-ui);
-  font-size: 1.1rem;
+  font-size: 1.12rem;
   font-weight: 800;
 }
 
@@ -832,7 +901,7 @@ button:disabled {
   color: #b18a67;
   text-align: center;
   font-family: var(--font-ui);
-  font-size: 0.74rem;
+  font-size: 0.72rem;
   font-weight: 700;
 }
 
@@ -840,7 +909,7 @@ button:disabled {
   min-height: 62px;
   padding: 8px 4px;
   border-radius: 18px;
-  background: rgba(248, 241, 231, 0.86);
+  background: rgba(248, 241, 231, 0.9);
   box-shadow: inset 0 0 0 1px rgba(177, 138, 103, 0.1);
   display: grid;
   align-content: space-between;
@@ -855,7 +924,7 @@ button:disabled {
 }
 
 .private-day.is-selected {
-  background: linear-gradient(180deg, rgba(248, 223, 197, 0.94), rgba(255, 245, 232, 0.92));
+  background: linear-gradient(180deg, rgba(248, 223, 197, 0.96), rgba(255, 245, 232, 0.94));
   box-shadow:
     0 10px 22px rgba(173, 131, 90, 0.12),
     inset 0 0 0 1px rgba(177, 138, 103, 0.16);
@@ -881,7 +950,7 @@ button:disabled {
 }
 
 .private-day.is-checked {
-  background: linear-gradient(180deg, rgba(249, 236, 217, 0.96), rgba(255, 248, 238, 0.94));
+  background: linear-gradient(180deg, rgba(249, 236, 217, 0.98), rgba(255, 248, 238, 0.94));
 }
 
 .private-day__dots i {
@@ -892,21 +961,22 @@ button:disabled {
 }
 
 .private-board {
-  padding: 20px;
+  grid-area: board;
   display: grid;
   gap: 18px;
+  align-content: start;
+  padding-top: 6px;
 }
 
 .private-unlock {
   display: flex;
   align-items: start;
   gap: 16px;
-  padding: 16px 18px;
-  border-radius: 24px;
-  background: linear-gradient(180deg, rgba(255, 248, 232, 0.96), rgba(250, 236, 255, 0.9));
-  box-shadow:
-    0 16px 28px rgba(164, 121, 71, 0.1),
-    inset 0 0 0 1px rgba(196, 151, 74, 0.14);
+  justify-self: start;
+  max-width: 430px;
+  padding: 18px 18px 18px 20px;
+  border-radius: 24px 19px 22px 26px;
+  transform: rotate(-1.2deg);
 }
 
 .private-unlock__spark {
@@ -926,6 +996,7 @@ button:disabled {
   align-items: start;
   justify-content: space-between;
   gap: 16px;
+  padding: 0 4px;
 }
 
 .private-board__topbar h2,
@@ -939,38 +1010,42 @@ button:disabled {
 
 .private-board__eyebrow {
   margin: 0 0 6px;
-  color: #c39a62;
+  color: #fff3dd;
   font-family: var(--font-ui);
   font-size: 0.72rem;
   font-weight: 800;
   letter-spacing: 0.18em;
   text-transform: uppercase;
+  text-shadow: 0 1px 0 rgba(79, 47, 17, 0.18);
+}
+
+.private-calendar .private-board__eyebrow,
+.private-checkin .private-board__eyebrow,
+.private-unlock .private-board__eyebrow,
+.private-editor .private-board__eyebrow {
+  color: #c39a62;
+  text-shadow: none;
 }
 
 .private-board__count {
   min-height: 42px;
   padding: 0 16px;
   border-radius: 999px;
-  background: rgba(243, 231, 216, 0.92);
+  background: rgba(255, 248, 237, 0.84);
   color: #8a6848;
   display: inline-flex;
   align-items: center;
   font-family: var(--font-ui);
   font-size: 0.92rem;
   font-weight: 700;
+  box-shadow: 0 10px 20px rgba(90, 59, 25, 0.1);
 }
 
 .private-board__surface {
   position: relative;
-  min-height: 520px;
-  border-radius: 34px;
-  background:
-    radial-gradient(circle at 2px 2px, rgba(107, 66, 38, 0.07) 1.4px, transparent 0),
-    linear-gradient(180deg, #f2dfc5 0%, #e6caab 100%);
-  background-size: 18px 18px, auto;
-  box-shadow:
-    inset 0 2px 0 rgba(255, 255, 255, 0.38),
-    inset 0 0 0 1px rgba(155, 113, 73, 0.12);
+  min-height: 620px;
+  padding: 8px;
+  background: transparent;
   overflow: hidden;
 }
 
@@ -981,13 +1056,13 @@ button:disabled {
   place-items: center;
   text-align: center;
   gap: 8px;
-  color: #8f6a4c;
+  color: rgba(255, 248, 237, 0.92);
   font-family: var(--font-ui);
 }
 
 .private-board__empty span {
-  font-size: 2.4rem;
-  color: #d7b083;
+  font-size: 2.2rem;
+  color: rgba(255, 230, 184, 0.84);
 }
 
 .private-note {
@@ -1008,14 +1083,14 @@ button:disabled {
 
 .private-note:hover {
   box-shadow:
-    0 22px 34px var(--private-note-shadow),
+    0 24px 36px var(--private-note-shadow),
     inset 0 0 0 1px color-mix(in srgb, var(--private-note-edge) 70%, white 30%);
 }
 
 .private-note.is-selected {
   box-shadow:
-    0 0 0 3px rgba(201, 151, 74, 0.16),
-    0 22px 34px var(--private-note-shadow),
+    0 0 0 3px rgba(255, 241, 219, 0.28),
+    0 24px 36px var(--private-note-shadow),
     inset 0 0 0 1px color-mix(in srgb, var(--private-note-edge) 70%, white 30%);
 }
 
@@ -1057,10 +1132,11 @@ button:disabled {
 .private-editor {
   display: grid;
   gap: 14px;
-  padding: 18px;
-  border-radius: 24px;
-  background: rgba(255, 248, 238, 0.88);
-  box-shadow: inset 0 0 0 1px rgba(177, 138, 103, 0.12);
+  max-width: 520px;
+  justify-self: start;
+  padding: 20px;
+  border-radius: 23px 19px 25px 22px;
+  transform: rotate(1.15deg);
 }
 
 .private-editor__header {
@@ -3145,7 +3221,7 @@ button:disabled {
   }
 
   .private-shell {
-    padding: 18px;
+    padding: 16px 14px 24px;
   }
 
   .private-header {
@@ -3163,14 +3239,15 @@ button:disabled {
     width: 100%;
   }
 
-  .private-layout {
+  .private-corkboard {
     grid-template-columns: minmax(0, 1fr);
-  }
-
-  .private-calendar,
-  .private-board,
-  .private-placeholder {
-    border-radius: 22px;
+    grid-template-areas:
+      "calendar"
+      "checkin"
+      "board";
+    padding: 22px 14px 24px;
+    border-radius: 28px;
+    gap: 18px;
   }
 
   .private-checkin,
@@ -3181,24 +3258,32 @@ button:disabled {
     flex-direction: column;
   }
 
+  .private-calendar,
+  .private-checkin,
+  .private-unlock,
+  .private-editor {
+    transform: none;
+  }
+
   .private-checkin__button {
     width: 100%;
   }
 
   .private-board {
-    padding: 16px;
+    gap: 16px;
   }
 
   .private-board__surface {
-    min-height: 440px;
+    min-height: 520px;
   }
 
   .private-note {
-    width: min(210px, 62vw);
-    min-height: 154px;
+    width: min(220px, 68vw);
+    min-height: 162px;
   }
 
   .private-editor {
+    max-width: none;
     padding: 16px;
   }
 

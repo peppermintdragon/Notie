@@ -3443,76 +3443,144 @@ button:disabled {
 
   .private-canvas-header {
     align-items: start;
-    flex-direction: column;
+    justify-content: space-between;
     gap: 12px;
     padding-inline: 2px;
   }
 
   .private-canvas-header__meta {
-    width: 100%;
-    justify-content: space-between;
+    width: auto;
+    flex-direction: column;
+    align-items: end;
+    justify-content: start;
   }
 
   .private-corkboard-canvas {
-    min-height: 980px;
+    min-height: 1150px;
     border-radius: 28px;
   }
 
   .private-day-banner {
-    top: 18px;
-    left: 18px;
-    right: 18px;
-    min-width: 0;
-    max-width: none;
-    padding: 16px 18px 14px;
-    transform: rotate(-0.8deg);
+    top: 28px;
+    left: auto;
+    right: 20px;
+    min-width: 142px;
+    max-width: 176px;
+    padding: 14px 16px 12px;
+    text-align: left;
+    transform: rotate(-1.1deg);
   }
 
   .private-day-banner h2 {
-    font-size: 1.7rem;
-  }
-
-  .private-calendar.private-floating-card,
-  .private-checkin.private-floating-card,
-  .private-unlock.private-floating-card,
-  .private-editor.private-floating-card {
-    left: 16px;
-    right: 16px;
-    width: auto;
-    max-width: none;
-    transform: none;
+    font-size: 1.45rem;
   }
 
   .private-calendar.private-floating-card {
-    top: 118px;
+    top: 34px;
+    left: 18px;
+    right: auto;
+    width: min(228px, calc(100vw - 148px));
   }
 
   .private-checkin.private-floating-card {
-    top: 520px;
+    top: 760px;
+    left: 16px;
+    right: auto;
+    width: 160px;
   }
 
   .private-unlock.private-floating-card {
-    top: 694px;
+    top: 194px;
+    left: auto;
+    right: 18px;
+    width: 154px;
   }
 
   .private-editor.private-floating-card {
-    top: auto;
-    bottom: 96px;
+    top: 836px;
+    left: auto;
+    right: 18px;
+    bottom: auto;
+    width: 166px;
+    padding: 14px;
+  }
+
+  .private-editor.private-floating-card .danger-button {
+    min-height: 34px;
+    padding: 0 12px;
+    font-size: 0.78rem;
+  }
+
+  .private-editor.private-floating-card .private-editor__header h3 {
+    font-size: 1.45rem;
+  }
+
+  .private-editor.private-floating-card .private-editor__textarea {
+    min-height: 88px;
+    padding: 10px 12px;
+    font-size: 1.05rem;
+  }
+
+  .private-editor.private-floating-card .private-editor__controls {
+    gap: 10px;
+  }
+
+  .private-editor.private-floating-card .private-swatch {
+    width: 18px;
+    height: 18px;
+  }
+
+  .private-editor.private-floating-card .private-editor__pin-toggle {
+    gap: 6px;
+    font-size: 0.76rem;
+  }
+
+  .private-checkin.private-floating-card h3,
+  .private-unlock.private-floating-card h3 {
+    font-size: 1.28rem;
+  }
+
+  .private-checkin.private-floating-card p,
+  .private-unlock.private-floating-card p,
+  .private-checkin.private-floating-card .private-board__eyebrow,
+  .private-unlock.private-floating-card .private-board__eyebrow {
+    font-size: 0.74rem;
+  }
+
+  .private-checkin.private-floating-card .private-checkin__button {
+    min-height: 38px;
+    font-size: 0.78rem;
+  }
+
+  .private-note {
+    width: 124px;
+    min-height: 118px;
+    padding: 16px 12px 12px;
+  }
+
+  .private-note__text {
+    font-size: 1rem;
+  }
+
+  .private-note__pin {
+    width: 14px;
+    height: 14px;
   }
 
   .private-toolbar {
-    position: sticky;
-    bottom: 8px;
-    gap: 10px;
-    padding-bottom: calc(6px + env(safe-area-inset-bottom));
+    display: none;
   }
 
-  .private-toolbar__button {
-    width: calc(50% - 8px);
-    min-width: 0;
-    min-height: 46px;
-    padding: 0 14px;
-    font-size: 0.9rem;
+  .private-board__empty {
+    inset: 260px 24px 0;
+  }
+
+  .private-header__actions .primary-button,
+  .private-header__actions .secondary-button {
+    width: auto;
+    min-height: 42px;
+    padding: 0 16px;
+    font-size: 0.84rem;
   }
 
   .preview-stage {

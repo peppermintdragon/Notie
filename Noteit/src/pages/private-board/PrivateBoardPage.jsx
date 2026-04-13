@@ -84,6 +84,9 @@ export default function PrivateBoardPage() {
     return Number.isNaN(parsed.getTime()) ? todayKey : dateKey;
   });
   const [selectedNoteId, setSelectedNoteId] = useState(null);
+  const [showCalendar, setShowCalendar] = useState(true);
+  const [showCheckin, setShowCheckin] = useState(true);
+  const [showEditor, setShowEditor] = useState(true);
   const boardRef = useRef(null);
   const dragState = useRef(null);
 
@@ -107,6 +110,15 @@ export default function PrivateBoardPage() {
   const hasUnlockedSurprise = totalCheckins >= UNLOCK_DAY_TARGET;
   const availableColors = hasUnlockedSurprise ? [...BASE_NOTE_COLORS, ...BONUS_NOTE_COLORS] : BASE_NOTE_COLORS;
   const selectedNote = dayNotes.find((note) => note.id === selectedNoteId) || null;
+  const selectedDayLabel = useMemo(
+    () =>
+      new Date(`${selectedDateKey}T12:00:00`).toLocaleDateString('en-US', {
+        weekday: 'long',
+        month: 'long',
+        day: 'numeric',
+      }),
+    [selectedDateKey]
+  );
 
   useEffect(() => {
     if (!selectedNote && dayNotes.length) {
@@ -191,275 +203,311 @@ export default function PrivateBoardPage() {
 
   return (
     <div className="app-bg app-bg--private">
-      <main className="notie-shell private-shell">
+      <main className="private-canvas-page">
         <motion.header
-          className="private-header"
+          className="private-canvas-header"
           initial={{ opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.35, ease: 'easeOut' }}
         >
-          <div className="private-header__copy">
+          <div className="private-canvas-header__copy">
             <p className="private-header__eyebrow">Private board</p>
             <h1>My little memory lane.</h1>
             <p>A gentle calendar wall for thoughts you want to keep close.</p>
           </div>
-
-          <div className="private-header__actions">
+          <div className="private-canvas-header__meta">
+            <span className="private-board__count">{dayNotes.length} notes</span>
             <Link className="secondary-button" to="/">
               Public Notie
             </Link>
-            <button className="primary-button" type="button" onClick={handleAddNote}>
-              + Add note
-            </button>
           </div>
         </motion.header>
 
-        <section className="private-corkboard">
-          <motion.aside
-            className="private-calendar private-pin private-pin--calendar"
-            initial={{ opacity: 0, x: -12, rotate: -3 }}
-            animate={{ opacity: 1, x: 0, rotate: -2.4 }}
-            transition={{ duration: 0.4, ease: 'easeOut' }}
-          >
-            <span className="private-pin__thumb private-pin__thumb--red" aria-hidden="true" />
-            <div className="private-calendar__header">
-              <button
-                className="icon-button"
-                type="button"
-                onClick={() => setMonthDate((current) => new Date(current.getFullYear(), current.getMonth() - 1, 1))}
-                aria-label="Previous month"
-              >
-                {'<'}
-              </button>
-              <h2>{getMonthLabel(monthDate)}</h2>
-              <button
-                className="icon-button"
-                type="button"
-                onClick={() => setMonthDate((current) => new Date(current.getFullYear(), current.getMonth() + 1, 1))}
-                aria-label="Next month"
-              >
-                {'>'}
-              </button>
-            </div>
-
-            <div className="private-calendar__weekdays">
-              {['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map((label) => (
-                <span key={label}>{label}</span>
-              ))}
-            </div>
-
-            <div className="private-calendar__grid">
-              {calendarCells.map((cell) => {
-                const noteCount = (notesByDate[cell.key] || []).length;
-                const isChecked = !!checkinsByDate[cell.key];
-                const isSelected = cell.key === selectedDateKey;
-                const isToday = cell.key === todayKey;
-
-                return (
-                  <button
-                    key={cell.key}
-                    className={`private-day ${cell.inMonth ? '' : 'is-muted'} ${isSelected ? 'is-selected' : ''} ${
-                      isToday ? 'is-today' : ''
-                    } ${isChecked ? 'is-checked' : ''}`}
-                    type="button"
-                    onClick={() => handleSelectDate(cell.key)}
-                  >
-                    <span>{cell.day}</span>
-                    {isChecked ? <strong className="private-day__check">+</strong> : null}
-                    <span className="private-day__dots">
-                      {Array.from({ length: Math.min(noteCount, 3) }, (_, index) => (
-                        <i key={`${cell.key}-${index}`} />
-                      ))}
-                    </span>
-                  </button>
-                );
-              })}
-            </div>
-          </motion.aside>
-
+        <section ref={boardRef} className="private-corkboard-canvas" onClick={() => setSelectedNoteId(null)}>
           <motion.div
-            className="private-checkin private-pin private-pin--checkin"
-            initial={{ opacity: 0, y: 10, rotate: 2.8 }}
-            animate={{ opacity: 1, y: 0, rotate: 2.2 }}
-            transition={{ duration: 0.4, ease: 'easeOut', delay: 0.04 }}
+            className="private-day-banner private-pin"
+            initial={{ opacity: 0, y: -8, rotate: -1.4 }}
+            animate={{ opacity: 1, y: 0, rotate: -0.8 }}
+            transition={{ duration: 0.35, ease: 'easeOut' }}
+            drag
+            dragConstraints={boardRef}
+            dragElastic={0.12}
           >
-            <span className="private-pin__thumb private-pin__thumb--teal" aria-hidden="true" />
-            <div>
-              <p className="private-board__eyebrow">Daily check-in</p>
-              <h3>{totalCheckins} / {UNLOCK_DAY_TARGET} days</h3>
-              <p>Check in gently. After day 10, a tiny hidden palette opens up.</p>
-            </div>
-            <button
-              className={`private-checkin__button ${checkinsByDate[selectedDateKey] ? 'is-active' : ''}`}
-              type="button"
-              onClick={toggleCheckin}
-            >
-              {checkinsByDate[selectedDateKey] ? 'Checked in' : 'Check in today'}
-            </button>
+            <span className="private-pin__thumb private-pin__thumb--gold" aria-hidden="true" />
+            <p className="private-board__eyebrow">Selected day</p>
+            <h2>{selectedDayLabel}</h2>
           </motion.div>
 
-          <motion.section
-            className="private-board"
-            initial={{ opacity: 0, x: 12 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.4, ease: 'easeOut', delay: 0.05 }}
-          >
-            <div className="private-board__topbar">
-              <div>
-                <p className="private-board__eyebrow">Selected day</p>
-                <h2>
-                  {new Date(`${selectedDateKey}T12:00:00`).toLocaleDateString('en-US', {
-                    weekday: 'long',
-                    month: 'long',
-                    day: 'numeric',
-                  })}
-                </h2>
-              </div>
-              <div className="private-board__count">{dayNotes.length} notes</div>
-            </div>
-
-            <AnimatePresence>
-              {hasUnlockedSurprise ? (
-                <motion.div
-                  className="private-unlock private-pin private-pin--unlock"
-                  initial={{ opacity: 0, y: 14, scale: 0.97, rotate: -1.6 }}
-                  animate={{ opacity: 1, y: 0, scale: 1, rotate: -1 }}
-                  exit={{ opacity: 0, y: -8, scale: 0.98 }}
-                  transition={{ type: 'spring', stiffness: 220, damping: 18 }}
-                >
-                  <span className="private-pin__thumb private-pin__thumb--gold" aria-hidden="true" />
-                  <span className="private-unlock__spark">*</span>
-                  <div>
-                    <p className="private-board__eyebrow">Unlocked</p>
-                    <h3>Apricot Glow + Moon Lavender</h3>
-                    <p>Your private board just opened a sweeter little palette.</p>
-                  </div>
-                </motion.div>
-              ) : null}
-            </AnimatePresence>
-
-            <div ref={boardRef} className="private-board__surface" onClick={() => setSelectedNoteId(null)}>
-              {dayNotes.length ? (
-                <LayoutGroup>
-                  <AnimatePresence mode="popLayout">
-                    {dayNotes.map((note, index) => {
-                      const color = getColorMeta(note.color);
-                      const hoverRotate = note.rotation + (note.rotation >= 0 ? 1.2 : -1.2);
-
-                      return (
-                        <motion.button
-                          key={note.id}
-                          layout
-                          type="button"
-                          className={`private-note ${selectedNoteId === note.id ? 'is-selected' : ''}`}
-                          style={{
-                            left: `${note.x}%`,
-                            top: `${note.y}%`,
-                            rotate: note.rotation,
-                            '--private-note-fill': color.fill,
-                            '--private-note-edge': color.edge,
-                            '--private-note-shadow': color.shadow,
-                          }}
-                          initial={{ opacity: 0, scale: 0.95 }}
-                          animate={{ opacity: 1, scale: 1 }}
-                          exit={{ opacity: 0, scale: 0.94 }}
-                          transition={{
-                            layout: { type: 'spring', stiffness: 220, damping: 20 },
-                            opacity: { duration: 0.22 },
-                            scale: { type: 'spring', stiffness: 250, damping: 18, delay: index * 0.03 },
-                          }}
-                          whileHover={{
-                            y: -4,
-                            rotate: hoverRotate,
-                            boxShadow: '0 26px 34px rgba(100, 72, 45, 0.22)',
-                          }}
-                          whileTap={{ scale: 0.985 }}
-                          drag
-                          dragMomentum
-                          dragElastic={0.18}
-                          dragConstraints={boardRef}
-                          dragTransition={{
-                            power: 0.18,
-                            timeConstant: 260,
-                            bounceStiffness: 220,
-                            bounceDamping: 16,
-                          }}
-                          onClick={(event) => {
-                            event.stopPropagation();
-                            setSelectedNoteId(note.id);
-                          }}
-                          onPointerDown={(event) => handleNotePointerDown(event, note)}
-                          onDragEnd={(event) => handleNoteDragEnd(event, note)}
-                        >
-                          {note.pinned ? <span className="private-note__pin" aria-hidden="true" /> : null}
-                          <span className="private-note__text">{note.text || 'A little thought...'}</span>
-                        </motion.button>
-                      );
-                    })}
-                  </AnimatePresence>
-                </LayoutGroup>
-              ) : (
-                <div className="private-board__empty">
-                  <span>*</span>
-                  <p>No note for this day yet. Start with one little thought.</p>
-                </div>
-              )}
-            </div>
-
-            <div className="private-editor private-pin private-pin--editor">
-              <span className="private-pin__thumb private-pin__thumb--green" aria-hidden="true" />
-              <div className="private-editor__header">
-                <div>
-                  <p className="private-board__eyebrow">Editing</p>
-                  <h3>{selectedNote ? 'Tune this note' : 'Pick or add a note'}</h3>
-                </div>
-                {selectedNote ? (
-                  <button className="danger-button" type="button" onClick={handleDeleteNote}>
-                    Remove
+          <AnimatePresence>
+            {showCalendar ? (
+              <motion.aside
+                className="private-calendar private-pin private-floating-card"
+                initial={{ opacity: 0, y: 18, rotate: -2.8 }}
+                animate={{ opacity: 1, y: 0, rotate: -2.2 }}
+                exit={{ opacity: 0, y: 12, scale: 0.96 }}
+                transition={{ duration: 0.35, ease: 'easeOut' }}
+                drag
+                dragConstraints={boardRef}
+                dragElastic={0.12}
+              >
+                <span className="private-pin__thumb private-pin__thumb--red" aria-hidden="true" />
+                <div className="private-calendar__header">
+                  <button
+                    className="icon-button"
+                    type="button"
+                    onClick={() => setMonthDate((current) => new Date(current.getFullYear(), current.getMonth() - 1, 1))}
+                    aria-label="Previous month"
+                  >
+                    {'<'}
                   </button>
-                ) : null}
-              </div>
+                  <h2>{getMonthLabel(monthDate)}</h2>
+                  <button
+                    className="icon-button"
+                    type="button"
+                    onClick={() => setMonthDate((current) => new Date(current.getFullYear(), current.getMonth() + 1, 1))}
+                    aria-label="Next month"
+                  >
+                    {'>'}
+                  </button>
+                </div>
 
-              {selectedNote ? (
-                <>
-                  <textarea
-                    className="private-editor__textarea"
-                    value={selectedNote.text}
-                    maxLength={240}
-                    placeholder="What happened today?"
-                    onChange={(event) => handleUpdateNote(selectedNote.id, { text: event.target.value })}
-                  />
+                <div className="private-calendar__weekdays">
+                  {['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map((label) => (
+                    <span key={label}>{label}</span>
+                  ))}
+                </div>
 
-                  <div className="private-editor__controls">
-                    <div className="private-editor__swatches">
-                      {availableColors.map((color) => (
-                        <button
-                          key={color.id}
-                          type="button"
-                          className={`private-swatch ${selectedNote.color === color.id ? 'is-active' : ''}`}
-                          style={{ '--swatch-fill': color.fill, '--swatch-edge': color.edge }}
-                          onClick={() => handleUpdateNote(selectedNote.id, { color: color.id })}
-                          aria-label={`Choose ${color.label}`}
-                        />
-                      ))}
-                    </div>
+                <div className="private-calendar__grid">
+                  {calendarCells.map((cell) => {
+                    const noteCount = (notesByDate[cell.key] || []).length;
+                    const isChecked = !!checkinsByDate[cell.key];
+                    const isSelected = cell.key === selectedDateKey;
+                    const isToday = cell.key === todayKey;
 
-                    <label className="private-editor__pin-toggle">
-                      <input
-                        type="checkbox"
-                        checked={selectedNote.pinned}
-                        onChange={(event) => handleUpdateNote(selectedNote.id, { pinned: event.target.checked })}
-                      />
-                      Pin this one
-                    </label>
-                  </div>
-                </>
-              ) : (
-                <p className="private-editor__empty">Tap a note to edit it, or add a fresh one for today.</p>
-              )}
+                    return (
+                      <button
+                        key={cell.key}
+                        className={`private-day ${cell.inMonth ? '' : 'is-muted'} ${isSelected ? 'is-selected' : ''} ${
+                          isToday ? 'is-today' : ''
+                        } ${isChecked ? 'is-checked' : ''}`}
+                        type="button"
+                        onClick={() => handleSelectDate(cell.key)}
+                      >
+                        <span>{cell.day}</span>
+                        {isChecked ? <strong className="private-day__check">+</strong> : null}
+                        <span className="private-day__dots">
+                          {Array.from({ length: Math.min(noteCount, 3) }, (_, index) => (
+                            <i key={`${cell.key}-${index}`} />
+                          ))}
+                        </span>
+                      </button>
+                    );
+                  })}
+                </div>
+              </motion.aside>
+            ) : null}
+          </AnimatePresence>
+
+          <AnimatePresence>
+            {showCheckin ? (
+              <motion.div
+                className="private-checkin private-pin private-floating-card"
+                initial={{ opacity: 0, y: 14, rotate: 2.4 }}
+                animate={{ opacity: 1, y: 0, rotate: 1.8 }}
+                exit={{ opacity: 0, y: 10, scale: 0.96 }}
+                transition={{ duration: 0.35, ease: 'easeOut' }}
+                drag
+                dragConstraints={boardRef}
+                dragElastic={0.12}
+              >
+                <span className="private-pin__thumb private-pin__thumb--teal" aria-hidden="true" />
+                <div>
+                  <p className="private-board__eyebrow">Daily check-in</p>
+                  <h3>{totalCheckins} / {UNLOCK_DAY_TARGET} days</h3>
+                  <p>Check in gently. After day 10, a tiny hidden palette opens up.</p>
+                </div>
+                <button
+                  className={`private-checkin__button ${checkinsByDate[selectedDateKey] ? 'is-active' : ''}`}
+                  type="button"
+                  onClick={toggleCheckin}
+                >
+                  {checkinsByDate[selectedDateKey] ? 'Checked in' : 'Check in today'}
+                </button>
+              </motion.div>
+            ) : null}
+          </AnimatePresence>
+
+          <AnimatePresence>
+            {hasUnlockedSurprise ? (
+              <motion.div
+                className="private-unlock private-pin private-floating-card"
+                initial={{ opacity: 0, y: 14, scale: 0.97, rotate: -1.6 }}
+                animate={{ opacity: 1, y: 0, scale: 1, rotate: -1 }}
+                exit={{ opacity: 0, y: -8, scale: 0.98 }}
+                transition={{ type: 'spring', stiffness: 220, damping: 18 }}
+                drag
+                dragConstraints={boardRef}
+                dragElastic={0.12}
+              >
+                <span className="private-pin__thumb private-pin__thumb--gold" aria-hidden="true" />
+                <span className="private-unlock__spark">*</span>
+                <div>
+                  <p className="private-board__eyebrow">Unlocked</p>
+                  <h3>Apricot Glow + Moon Lavender</h3>
+                  <p>Your private board just opened a sweeter little palette.</p>
+                </div>
+              </motion.div>
+            ) : null}
+          </AnimatePresence>
+
+          {dayNotes.length ? (
+            <LayoutGroup>
+              <AnimatePresence mode="popLayout">
+                {dayNotes.map((note, index) => {
+                  const color = getColorMeta(note.color);
+                  const hoverRotate = note.rotation + (note.rotation >= 0 ? 1.2 : -1.2);
+
+                  return (
+                    <motion.button
+                      key={note.id}
+                      layout
+                      type="button"
+                      className={`private-note ${selectedNoteId === note.id ? 'is-selected' : ''}`}
+                      style={{
+                        left: `${note.x}%`,
+                        top: `${note.y}%`,
+                        rotate: note.rotation,
+                        '--private-note-fill': color.fill,
+                        '--private-note-edge': color.edge,
+                        '--private-note-shadow': color.shadow,
+                      }}
+                      initial={{ opacity: 0, scale: 0.95 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      exit={{ opacity: 0, scale: 0.94 }}
+                      transition={{
+                        layout: { type: 'spring', stiffness: 220, damping: 20 },
+                        opacity: { duration: 0.22 },
+                        scale: { type: 'spring', stiffness: 250, damping: 18, delay: index * 0.03 },
+                      }}
+                      whileHover={{
+                        y: -4,
+                        rotate: hoverRotate,
+                        boxShadow: '0 26px 34px rgba(100, 72, 45, 0.22)',
+                      }}
+                      whileTap={{ scale: 0.985 }}
+                      drag
+                      dragMomentum
+                      dragElastic={0.18}
+                      dragConstraints={boardRef}
+                      dragTransition={{
+                        power: 0.18,
+                        timeConstant: 260,
+                        bounceStiffness: 220,
+                        bounceDamping: 16,
+                      }}
+                      onClick={(event) => {
+                        event.stopPropagation();
+                        setSelectedNoteId(note.id);
+                        setShowEditor(true);
+                      }}
+                      onPointerDown={(event) => handleNotePointerDown(event, note)}
+                      onDragEnd={(event) => handleNoteDragEnd(event, note)}
+                    >
+                      {note.pinned ? <span className="private-note__pin" aria-hidden="true" /> : null}
+                      <span className="private-note__text">{note.text || 'A little thought...'}</span>
+                    </motion.button>
+                  );
+                })}
+              </AnimatePresence>
+            </LayoutGroup>
+          ) : (
+            <div className="private-board__empty">
+              <span>*</span>
+              <p>No note for this day yet. Start with one little thought.</p>
             </div>
-          </motion.section>
+          )}
+
+          <AnimatePresence>
+            {showEditor ? (
+              <motion.div
+                className="private-editor private-pin private-floating-card"
+                initial={{ opacity: 0, y: 18, rotate: 1.6 }}
+                animate={{ opacity: 1, y: 0, rotate: 1.1 }}
+                exit={{ opacity: 0, y: 12, scale: 0.96 }}
+                transition={{ duration: 0.35, ease: 'easeOut' }}
+                drag
+                dragConstraints={boardRef}
+                dragElastic={0.12}
+              >
+                <span className="private-pin__thumb private-pin__thumb--green" aria-hidden="true" />
+                <div className="private-editor__header">
+                  <div>
+                    <p className="private-board__eyebrow">Editing</p>
+                    <h3>{selectedNote ? 'Tune this note' : 'Pick or add a note'}</h3>
+                  </div>
+                  {selectedNote ? (
+                    <button className="danger-button" type="button" onClick={handleDeleteNote}>
+                      Remove
+                    </button>
+                  ) : null}
+                </div>
+
+                {selectedNote ? (
+                  <>
+                    <textarea
+                      className="private-editor__textarea"
+                      value={selectedNote.text}
+                      maxLength={240}
+                      placeholder="What happened today?"
+                      onChange={(event) => handleUpdateNote(selectedNote.id, { text: event.target.value })}
+                    />
+
+                    <div className="private-editor__controls">
+                      <div className="private-editor__swatches">
+                        {availableColors.map((color) => (
+                          <button
+                            key={color.id}
+                            type="button"
+                            className={`private-swatch ${selectedNote.color === color.id ? 'is-active' : ''}`}
+                            style={{ '--swatch-fill': color.fill, '--swatch-edge': color.edge }}
+                            onClick={() => handleUpdateNote(selectedNote.id, { color: color.id })}
+                            aria-label={`Choose ${color.label}`}
+                          />
+                        ))}
+                      </div>
+
+                      <label className="private-editor__pin-toggle">
+                        <input
+                          type="checkbox"
+                          checked={selectedNote.pinned}
+                          onChange={(event) => handleUpdateNote(selectedNote.id, { pinned: event.target.checked })}
+                        />
+                        Pin this one
+                      </label>
+                    </div>
+                  </>
+                ) : (
+                  <p className="private-editor__empty">Tap a note to edit it, or add a fresh one for today.</p>
+                )}
+              </motion.div>
+            ) : null}
+          </AnimatePresence>
         </section>
+
+        <nav className="private-toolbar" aria-label="Private board tools">
+          <button className="private-toolbar__button private-toolbar__button--primary" type="button" onClick={handleAddNote}>
+            + Add note
+          </button>
+          <button className="private-toolbar__button" type="button" onClick={() => setShowCalendar((value) => !value)}>
+            {showCalendar ? 'Hide calendar' : 'Show calendar'}
+          </button>
+          <button className="private-toolbar__button" type="button" onClick={() => setShowCheckin((value) => !value)}>
+            {showCheckin ? 'Hide check-in' : 'Show check-in'}
+          </button>
+          <button className="private-toolbar__button" type="button" onClick={() => setShowEditor((value) => !value)}>
+            {showEditor ? 'Hide editor' : 'Show editor'}
+          </button>
+        </nav>
       </main>
     </div>
   );

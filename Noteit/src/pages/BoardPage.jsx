@@ -528,12 +528,11 @@ export default function BoardPage() {
                       '--board-scale': layout.scale,
                       zIndex: liftedNotes[note.id] ?? layout.zIndex,
                     }}
-                    initial={{ opacity: 0, scale: 0.82, y: 26 }}
-                    animate={{ opacity: 1, scale: 1, y: 0 }}
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
                     transition={{
-                      type: 'spring',
-                      stiffness: 210,
-                      damping: 18,
+                      duration: 0.28,
+                      ease: 'easeOut',
                       delay: index * 0.03,
                     }}
                     onPointerDown={(event) => handleNotePointerDown(event, note)}

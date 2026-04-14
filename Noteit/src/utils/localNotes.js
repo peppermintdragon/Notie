@@ -1,8 +1,12 @@
 import { deserializeStickerEntries } from './stickers';
+import { getCustomNoteStyle } from './customNoteStyle';
 
-const LOCAL_NOTES_KEY = 'notie-local-notes';
+function getLocalNotesKey(boardKey = 'public') {
+  return `notie-local-notes-${boardKey}`;
+}
 
-const demoNotes = [
+const demoNotesByBoard = {
+  public: [
   {
     id: 'demo-1',
     created_at: '2026-04-09T08:00:00.000Z',
@@ -54,7 +58,60 @@ const demoNotes = [
     pos_y: 18,
     rotation: 14,
   },
-];
+  ],
+  occasion: [
+    {
+      id: 'occasion-demo-1',
+      created_at: '2026-04-09T08:00:00.000Z',
+      name: 'AVA',
+      message: 'Wishing you both a soft and happy forever.',
+      design_id: 'blank-paper',
+      theme_id: 'champagne',
+      stickers: [],
+      pos_x: 12,
+      pos_y: 12,
+      rotation: -11,
+    },
+    {
+      id: 'occasion-demo-2',
+      created_at: '2026-04-09T08:01:00.000Z',
+      name: 'MILO',
+      message: 'May this day feel gentle, bright, and unforgettable.',
+      design_id: 'cute-blush',
+      theme_id: 'rosewater',
+      stickers: [],
+      pos_x: 34,
+      pos_y: 10,
+      rotation: 10,
+    },
+  ],
+  friends: [
+    {
+      id: 'friends-demo-1',
+      created_at: '2026-04-09T08:00:00.000Z',
+      name: 'NOVA',
+      message: 'You survived today. That deserves a sticker.',
+      design_id: 'cute-garden',
+      theme_id: 'mint',
+      stickers: [{ id: 'fs1', stickerId: 'sticker-4', x: 75, y: 18, scale: 0.92, rotation: 9 }],
+      pos_x: 10,
+      pos_y: 12,
+      rotation: -14,
+    },
+    {
+      id: 'friends-demo-2',
+      created_at: '2026-04-09T08:01:00.000Z',
+      name: 'BEA',
+      message: 'Emergency reminder: drink water and text back.',
+      design_id: 'cute-smile',
+      theme_id: 'dusty-blue',
+      stickers: [{ id: 'fs2', stickerId: 'sticker-1', x: 20, y: 20, scale: 0.9, rotation: -8 }],
+      pos_x: 36,
+      pos_y: 16,
+      rotation: 13,
+    },
+  ],
+};
 
 function canUseStorage() {
   return typeof window !== 'undefined' && typeof window.localStorage !== 'undefined';
@@ -63,19 +120,21 @@ function canUseStorage() {
 function normalizeNotes(notes) {
   return notes.map((note) => ({
     ...note,
+    custom_style: getCustomNoteStyle(note.stickers, note.custom_style || note.customStyle),
     stickers: deserializeStickerEntries(note.stickers),
   }));
 }
 
-export function getDemoNotes() {
-  return normalizeNotes(demoNotes.map((note) => ({ ...note })));
+export function getDemoNotes(boardKey = 'public') {
+  const notes = demoNotesByBoard[boardKey] || demoNotesByBoard.public;
+  return normalizeNotes(notes.map((note) => ({ ...note, board_type: boardKey })));
 }
 
-export function readLocalNotes() {
+export function readLocalNotes(boardKey = 'public') {
   if (!canUseStorage()) return [];
 
   try {
-    const raw = window.localStorage.getItem(LOCAL_NOTES_KEY);
+    const raw = window.localStorage.getItem(getLocalNotesKey(boardKey));
     if (!raw) return [];
     const parsed = JSON.parse(raw);
     return Array.isArray(parsed) ? normalizeNotes(parsed) : [];
@@ -84,20 +143,20 @@ export function readLocalNotes() {
   }
 }
 
-export function writeLocalNotes(notes) {
+export function writeLocalNotes(notes, boardKey = 'public') {
   if (!canUseStorage()) return;
-  window.localStorage.setItem(LOCAL_NOTES_KEY, JSON.stringify(notes));
+  window.localStorage.setItem(getLocalNotesKey(boardKey), JSON.stringify(notes));
 }
 
-export function appendLocalNote(note) {
-  const next = [...readLocalNotes(), note].sort(
+export function appendLocalNote(note, boardKey = 'public') {
+  const next = [...readLocalNotes(boardKey), note].sort(
     (a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
   );
-  writeLocalNotes(next);
+  writeLocalNotes(next, boardKey);
 }
 
-export function updateLocalNote(noteId, patch) {
-  const next = readLocalNotes().map((note) =>
+export function updateLocalNote(noteId, patch, boardKey = 'public') {
+  const next = readLocalNotes(boardKey).map((note) =>
     note.id === noteId
       ? {
           ...note,
@@ -105,15 +164,15 @@ export function updateLocalNote(noteId, patch) {
         }
       : note
   );
-  writeLocalNotes(next);
+  writeLocalNotes(next, boardKey);
 }
 
-export function removeLocalNote(noteId) {
-  const next = readLocalNotes().filter((note) => note.id !== noteId);
-  writeLocalNotes(next);
+export function removeLocalNote(noteId, boardKey = 'public') {
+  const next = readLocalNotes(boardKey).filter((note) => note.id !== noteId);
+  writeLocalNotes(next, boardKey);
 }
 
-export function getBoardNotesWithFallback() {
-  const localNotes = readLocalNotes();
-  return localNotes.length ? localNotes : getDemoNotes();
+export function getBoardNotesWithFallback(boardKey = 'public') {
+  const localNotes = readLocalNotes(boardKey);
+  return localNotes.length ? localNotes : getDemoNotes(boardKey);
 }

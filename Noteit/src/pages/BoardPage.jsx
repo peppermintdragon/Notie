@@ -5,6 +5,7 @@ import NoteCard from '../components/NoteCard';
 import NoteModal from '../components/NoteModal';
 import { supabase } from '../lib/supabase';
 import { useRealtimeNotes } from '../hooks/useRealtimeNotes';
+import { getCustomNoteStyle } from '../utils/customNoteStyle';
 import { getBoardNotesWithFallback, removeLocalNote, updateLocalNote } from '../utils/localNotes';
 import { getSupabaseIssueMessage } from '../utils/supabaseStatus';
 import { deserializeStickerEntries, getPushpinColor } from '../utils/stickers';
@@ -23,6 +24,10 @@ function normalizeNote(note) {
     ...note,
     name: note.name?.trim() || 'Anonymous',
     pin_color: note.pin_color || getPushpinColor(note.stickers || note.dropped_stickers),
+    custom_style: getCustomNoteStyle(
+      note.stickers || note.dropped_stickers,
+      note.custom_style || note.customStyle
+    ),
     stickers: deserializeStickerEntries(note.stickers || note.dropped_stickers),
   };
 }

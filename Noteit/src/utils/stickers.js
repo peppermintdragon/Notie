@@ -3,14 +3,78 @@ import sticker2 from '../assets/stickers/sticker-2.png';
 import sticker3 from '../assets/stickers/sticker-3.png';
 import sticker4 from '../assets/stickers/sticker-4.png';
 import sticker5 from '../assets/stickers/sticker-5.png';
+import customAnimal1 from '../../NotesDesign/Customize/Customize/StickerPack/4x/animal (1).png';
+import customAnimal2 from '../../NotesDesign/Customize/Customize/StickerPack/4x/animal (2).png';
+import customAnimal3 from '../../NotesDesign/Customize/Customize/StickerPack/4x/animal (3).png';
+import customAnimal4 from '../../NotesDesign/Customize/Customize/StickerPack/4x/animal (4).png';
+import customAnimal5 from '../../NotesDesign/Customize/Customize/StickerPack/4x/animal (5).png';
+import customAnimal6 from '../../NotesDesign/Customize/Customize/StickerPack/4x/animal (6).png';
+import customAnimal7 from '../../NotesDesign/Customize/Customize/StickerPack/4x/animal (7).png';
+import positiveWords1 from '../../NotesDesign/Customize/Customize/StickerPack/4x/PositiveWords1.png';
+import positiveWords2 from '../../NotesDesign/Customize/Customize/StickerPack/4x/PositiveWords2.png';
+import positiveWords3 from '../../NotesDesign/Customize/Customize/StickerPack/4x/PositiveWords3.png';
+import positiveWords4 from '../../NotesDesign/Customize/Customize/StickerPack/4x/PositiveWords4.png';
+import { createCustomNoteStyleEntry } from './customNoteStyle';
 
-export const stickerOptions = [
-  { id: 'sticker-1', src: sticker1, label: 'Sweet treat' },
-  { id: 'sticker-2', src: sticker2, label: 'Twinkle star' },
-  { id: 'sticker-3', src: sticker3, label: 'Twinkle trio' },
-  { id: 'sticker-4', src: sticker4, label: 'Small steps' },
-  { id: 'sticker-5', src: sticker5, label: 'Sunny snack' },
+export const stickerPacks = [
+  {
+    id: 'starter-pack',
+    label: 'Starter',
+    items: [
+      { id: 'sticker-1', src: sticker1, label: 'Sweet treat', kind: 'image' },
+      { id: 'sticker-2', src: sticker2, label: 'Twinkle star', kind: 'image' },
+      { id: 'sticker-3', src: sticker3, label: 'Twinkle trio', kind: 'image' },
+      { id: 'sticker-4', src: sticker4, label: 'Small steps', kind: 'image' },
+      { id: 'sticker-5', src: sticker5, label: 'Sunny snack', kind: 'image' },
+    ],
+  },
+  {
+    id: 'creature-pack',
+    label: 'Creature pack',
+    items: [
+      { id: 'creature-1', src: customAnimal1, label: 'Creature 1', kind: 'image' },
+      { id: 'creature-2', src: customAnimal2, label: 'Creature 2', kind: 'image' },
+      { id: 'creature-3', src: customAnimal3, label: 'Creature 3', kind: 'image' },
+      { id: 'creature-4', src: customAnimal4, label: 'Creature 4', kind: 'image' },
+      { id: 'creature-5', src: customAnimal5, label: 'Creature 5', kind: 'image' },
+      { id: 'creature-6', src: customAnimal6, label: 'Creature 6', kind: 'image' },
+      { id: 'creature-7', src: customAnimal7, label: 'Creature 7', kind: 'image' },
+    ],
+  },
+  {
+    id: 'word-pack',
+    label: 'Word pack',
+    items: [
+      { id: 'word-1', src: positiveWords1, label: 'Bright words 1', kind: 'image' },
+      { id: 'word-2', src: positiveWords2, label: 'Bright words 2', kind: 'image' },
+      { id: 'word-3', src: positiveWords3, label: 'Bright words 3', kind: 'image' },
+      { id: 'word-4', src: positiveWords4, label: 'Bright words 4', kind: 'image' },
+    ],
+  },
+  {
+    id: 'emoji-pack',
+    label: 'Emoji pack',
+    items: [
+      { id: 'emoji-flower', label: 'Flower', kind: 'emoji', emoji: '🌸' },
+      { id: 'emoji-coffee', label: 'Coffee', kind: 'emoji', emoji: '☕' },
+      { id: 'emoji-moon', label: 'Moon', kind: 'emoji', emoji: '🌙' },
+      { id: 'emoji-sparkles', label: 'Sparkles', kind: 'emoji', emoji: '✨' },
+      { id: 'emoji-cat', label: 'Cat', kind: 'emoji', emoji: '🐱' },
+      { id: 'emoji-rabbit', label: 'Rabbit', kind: 'emoji', emoji: '🐰' },
+      { id: 'emoji-strawberry', label: 'Strawberry', kind: 'emoji', emoji: '🍓' },
+      { id: 'emoji-ribbon', label: 'Ribbon', kind: 'emoji', emoji: '🎀' },
+      { id: 'emoji-star', label: 'Star', kind: 'emoji', emoji: '⭐' },
+    ],
+  },
 ];
+
+export const stickerOptions = stickerPacks.flatMap((pack) =>
+  pack.items.map((sticker) => ({
+    ...sticker,
+    packId: pack.id,
+    packLabel: pack.label,
+  }))
+);
 
 export const stickerMap = Object.fromEntries(stickerOptions.map((sticker) => [sticker.id, sticker]));
 
@@ -36,7 +100,7 @@ function clamp(value, min, max) {
   return Math.max(min, Math.min(max, value));
 }
 
-function parseDecorEntries(entries) {
+export function parseDecorEntries(entries) {
   if (!Array.isArray(entries)) return [];
 
   return entries
@@ -115,7 +179,7 @@ export function normalizeStickerEntries(stickers) {
       }
 
       if (!sticker || typeof sticker !== 'object') return null;
-      if (sticker.type === 'pin') return null;
+      if (sticker.type) return null;
 
       return {
         id: sticker.id || `placed-${index}`,
@@ -135,8 +199,12 @@ export function getPushpinColor(entries, fallback = null) {
   return pushpinMap[meta?.color] ? meta.color : fallback;
 }
 
-export function serializeStickerEntries(stickers, pinColor = null) {
+export function serializeStickerEntries(stickers, pinColor = null, customStyle = null) {
   const serialized = normalizeStickerEntries(stickers).map((sticker) => JSON.stringify(sticker));
+
+  if (customStyle) {
+    serialized.push(JSON.stringify(createCustomNoteStyleEntry(customStyle)));
+  }
 
   if (pinColor && pinColor !== 'none' && pushpinMap[pinColor]) {
     serialized.push(JSON.stringify({ type: 'pin', color: pinColor }));

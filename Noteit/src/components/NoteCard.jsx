@@ -2,6 +2,8 @@ import { forwardRef, useEffect, useRef, useState } from 'react';
 import { motion } from 'framer-motion';
 import { themeMap } from '../utils/colorThemes';
 import { noteDesignMap, noteDesigns } from '../utils/noteDesigns';
+import { getCustomNoteStyle } from '../utils/customNoteStyle';
+import { noteMakerColorMap, noteMakerPatternMap, noteMakerShapeMap } from '../utils/noteMakerConfig';
 import { getNoteMessageStyle } from '../utils/noteTypography';
 import { getPushpinColor, normalizeStickerEntries, pushpinMap, stickerMap } from '../utils/stickers';
 
@@ -47,6 +49,7 @@ const NoteCard = forwardRef(function NoteCard(
     preview = false,
     board = false,
     editable = false,
+    hideCopy = false,
     onClick,
     onStickerMove,
     onStickerRemove,
@@ -63,11 +66,15 @@ const NoteCard = forwardRef(function NoteCard(
   const theme = themeMap[note.theme_id || note.themeId] || themeMap.cream;
   const design = noteDesignMap[note.design_id || note.designId] || noteDesigns[0];
   const stickers = normalizeStickerEntries(note.stickers || []);
+  const customStyle = getCustomNoteStyle(note.stickers || [], note.custom_style || note.customStyle);
   const pinColorId = note.pin_color || note.pinColor || getPushpinColor(note.stickers || []);
   const pin = pinColorId ? pushpinMap[pinColorId] : null;
   const message = note.message?.trim() || 'Write a little note...';
   const displayName = note.name?.trim() || 'Anonymous';
   const noteSize = preview ? 460 : design.boardWidth;
+  const customColor = customStyle ? noteMakerColorMap[customStyle.colorId] : null;
+  const customPattern = customStyle ? noteMakerPatternMap[customStyle.patternId] : null;
+  const customShape = customStyle ? noteMakerShapeMap[customStyle.shapeId] : null;
 
   const cardStyle = {
     '--note-surface': theme.surface,
@@ -79,6 +86,15 @@ const NoteCard = forwardRef(function NoteCard(
     '--pin-color': pin?.color || 'transparent',
     '--pin-edge': pin?.edge || 'transparent',
     '--pin-shadow': pin?.shadow || 'transparent',
+    '--custom-note-fill': customColor?.fill || 'transparent',
+    '--custom-note-accent': customColor?.accent || theme.accent,
+    '--custom-note-shadow': customColor?.shadow || theme.shadow,
+    '--custom-note-pattern':
+      customPattern?.type === 'asset'
+        ? `url("${customPattern.asset}")`
+        : customPattern?.backgroundImage || 'none',
+    '--custom-note-pattern-size': customPattern?.backgroundSize || 'cover',
+    '--custom-shape-mask': customShape?.asset ? `url("${customShape.asset}")` : 'none',
     width: preview ? 'min(76vw, 300px)' : `${design.boardWidth}px`,
     minHeight: preview ? '310px' : `${design.boardHeight}px`,
     ...getPaperEdgeStyle(note, board),
@@ -216,7 +232,7 @@ const NoteCard = forwardRef(function NoteCard(
   return (
     <MotionDiv
       ref={setRefs}
-      className={`note-card ${design.isBlank ? 'note-card--blank' : 'note-card--art'} ${design.contentClass} ${preview ? 'is-preview' : ''} ${interactive ? 'is-interactive' : ''} ${editable ? 'is-editable' : ''} ${board ? 'is-board' : ''} ${className}`}
+      className={`note-card ${customStyle ? 'note-card--custom' : design.isBlank ? 'note-card--blank' : 'note-card--art'} ${design.contentClass} ${preview ? 'is-preview' : ''} ${interactive ? 'is-interactive' : ''} ${editable ? 'is-editable' : ''} ${board ? 'is-board' : ''} ${className}`}
       style={cardStyle}
       onClick={onClick}
       onPointerMove={handlePointerMove}
@@ -311,23 +327,31 @@ const NoteCard = forwardRef(function NoteCard(
                   onPointerCancel={stopStickerDrag}
                   aria-label={editable ? `Move ${assetSticker.label}` : assetSticker.label}
                 >
-                  <img src={assetSticker.src} alt="" className="note-sticker__image" />
+                  {assetSticker.kind === 'emoji' ? (
+                    <span className="note-sticker__emoji" aria-hidden="true">
+                      {assetSticker.emoji}
+                    </span>
+                  ) : (
+                    <img src={assetSticker.src} alt="" className="note-sticker__image" />
+                  )}
                 </button>
               </div>
             );
           })}
         </div>
 
-        <div className="note-card__copy">
-          {showSparkle ? <span className="note-card__sparkle" aria-hidden="true">✦</span> : null}
-          <div className="note-card__message" style={messageStyle}>
-            {message}
-          </div>
+        {!hideCopy ? (
+          <div className="note-card__copy">
+            {showSparkle ? <span className="note-card__sparkle" aria-hidden="true">✦</span> : null}
+            <div className="note-card__message" style={messageStyle}>
+              {message}
+            </div>
 
-          <div className="note-card__footer">
-            <span className="note-card__name">{displayName}</span>
+            <div className="note-card__footer">
+              <span className="note-card__name">{displayName}</span>
+            </div>
           </div>
-        </div>
+        ) : null}
       </div>
     </MotionDiv>
   );

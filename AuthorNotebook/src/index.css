@@ -1,0 +1,128 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  * {
+    @apply border-ink-200 dark:border-ink-700;
+  }
+
+  body {
+    @apply antialiased transition-colors duration-200;
+  }
+
+  /* Custom scrollbar */
+  ::-webkit-scrollbar {
+    @apply w-2;
+  }
+
+  ::-webkit-scrollbar-track {
+    @apply bg-transparent;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    @apply bg-ink-300 dark:bg-ink-600 rounded-full;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    @apply bg-ink-400 dark:bg-ink-500;
+  }
+}
+
+@layer components {
+  .btn {
+    @apply inline-flex items-center justify-center gap-2 rounded-lg px-4 py-2 text-sm font-medium
+           transition-all duration-150 ease-in-out
+           focus:outline-none focus:ring-2 focus:ring-offset-2
+           disabled:opacity-50 disabled:cursor-not-allowed;
+  }
+
+  .btn-primary {
+    @apply btn bg-ink-800 text-parchment-50 hover:bg-ink-700
+           dark:bg-parchment-100 dark:text-ink-800 dark:hover:bg-parchment-200
+           focus:ring-ink-500;
+  }
+
+  .btn-secondary {
+    @apply btn border border-ink-300 bg-white text-ink-700
+           hover:bg-parchment-100
+           dark:border-ink-600 dark:bg-ink-800 dark:text-ink-200
+           dark:hover:bg-ink-700
+           focus:ring-ink-400;
+  }
+
+  .btn-ghost {
+    @apply btn text-ink-600 hover:bg-ink-100
+           dark:text-ink-300 dark:hover:bg-ink-800
+           focus:ring-ink-400;
+  }
+
+  .btn-danger {
+    @apply btn bg-red-600 text-white hover:bg-red-700
+           focus:ring-red-500;
+  }
+
+  .card {
+    @apply rounded-xl border bg-white p-4 shadow-sm
+           dark:bg-ink-800 dark:border-ink-700;
+  }
+
+  .input {
+    @apply w-full rounded-lg border border-ink-300 bg-white px-3 py-2 text-sm
+           placeholder:text-ink-400
+           focus:border-ink-500 focus:outline-none focus:ring-1 focus:ring-ink-500
+           dark:border-ink-600 dark:bg-ink-800 dark:text-ink-100
+           dark:placeholder:text-ink-500
+           dark:focus:border-ink-400 dark:focus:ring-ink-400;
+  }
+
+  .label {
+    @apply block text-sm font-medium text-ink-700 dark:text-ink-300 mb-1;
+  }
+}
+
+/* TipTap editor styles */
+.tiptap-editor .ProseMirror {
+  @apply outline-none min-h-[200px] p-4;
+}
+
+.tiptap-editor .ProseMirror p.is-editor-empty:first-child::before {
+  @apply text-ink-400 dark:text-ink-500 float-left h-0 pointer-events-none;
+  content: attr(data-placeholder);
+}
+
+.tiptap-editor .ProseMirror h1 {
+  @apply text-2xl font-bold mb-4;
+}
+
+.tiptap-editor .ProseMirror h2 {
+  @apply text-xl font-bold mb-3;
+}
+
+.tiptap-editor .ProseMirror h3 {
+  @apply text-lg font-semibold mb-2;
+}
+
+.tiptap-editor .ProseMirror p {
+  @apply mb-2 leading-relaxed;
+}
+
+.tiptap-editor .ProseMirror ul {
+  @apply list-disc pl-6 mb-2;
+}
+
+.tiptap-editor .ProseMirror ol {
+  @apply list-decimal pl-6 mb-2;
+}
+
+.tiptap-editor .ProseMirror blockquote {
+  @apply border-l-4 border-ink-300 dark:border-ink-600 pl-4 italic text-ink-600 dark:text-ink-400 mb-2;
+}
+
+.tiptap-editor .ProseMirror code {
+  @apply bg-ink-100 dark:bg-ink-700 rounded px-1 py-0.5 text-sm font-mono;
+}
+
+.tiptap-editor .ProseMirror hr {
+  @apply border-ink-200 dark:border-ink-700 my-4;
+}

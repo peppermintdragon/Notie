@@ -161,16 +161,7 @@ export default function NoteMaker() {
       </div>
 
       {/* Zone 3: Button Bar (Fixed) */}
-      <div style={{
-        flexShrink: 0,
-        padding: '12px 24px 60px',
-        borderTop: '1px solid rgba(200, 153, 90, 0.2)',
-        background: '#f5f0ea',
-        display: 'flex',
-        justifyContent: 'center',
-        gap: '12px',
-        flexWrap: 'wrap'
-      }}>
+      <div className="wizard__button-bar">
         <button
           onClick={handleBack}
           disabled={currentStep === 1}
@@ -190,19 +181,8 @@ export default function NoteMaker() {
       </div>
 
       {/* Credit Footer */}
-      <div style={{
-        position: 'fixed',
-        bottom: 0,
-        left: 0,
-        right: 0,
-        padding: '12px 24px',
-        background: '#AF9164',
-        color: '#ffffff',
-        textAlign: 'center',
-        fontSize: '0.9rem',
-        zIndex: 1000
-      }}>
-        Made with love by Selena Loong | <a href="#" style={{ color: '#ffffff', textDecoration: 'underline' }}>Contact Us</a> | © 2026 Selena Loong. All rights reserved.
+      <div className="wizard__credit-bar">
+        Made with love by Selena Loong | <a href="#" onClick={(e) => e.preventDefault()}>Contact Us</a> | © 2026 Selena Loong. All rights reserved.
       </div>
     </div>
   );
